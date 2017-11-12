@@ -39,6 +39,9 @@
 #ifndef FILE_SGW_MESSAGES_TYPES_SEEN
 #define FILE_SGW_MESSAGES_TYPES_SEEN
 
-
+typedef struct {
+    char* buffer;
+    size_t buffer_length;
+} sgw_gtpv1u_listener_recv_t;
 
 #endif /* FILE_SGW_MESSAGES_TYPES_SEEN */

@@ -26,3 +26,5 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
+
+ MESSAGE_DEF(SGW_GTPV1U_LISTENER_RECV, MESSAGE_PRIORITY_MED, sgw_gtpv1u_listener_recv_t, sgw_gtpv1u_listener_recv)

@@ -2,6 +2,7 @@
 
 #include "common_defs.h"
 #include "log.h"
+#include "intertask_interface.h"
 
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -39,6 +40,18 @@ static void* sgw_gtpv1u_listener(void* p_fdv1u) {
         }
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, 
             "Received %d/%d bytes: %s\n",  strlen(buffer), n, buffer);
+
+        // Send to SGW-APP task.
+        MessageDef* message;
+        message = itti_alloc_new_message(TASK_UNKNOWN, SGW_GTPV1U_LISTENER_RECV);
+        message->ittiMsg.sgw_gtpv1u_listener_recv.buffer =
+            malloc(n + 1);
+        memset(message->ittiMsg.sgw_gtpv1u_listener_recv.buffer, 0, n + 1);
+        memcpy(message->ittiMsg.sgw_gtpv1u_listener_recv.buffer, buffer, n);
+        message->ittiMsg.sgw_gtpv1u_listener_recv.buffer_length = n + 1;
+
+        int rv = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message);
+        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Send message to task returned %d\n", rv);
     }
 }
 

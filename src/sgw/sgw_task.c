@@ -120,6 +120,12 @@ static void *sgw_intertask_interface (void *args_p)
       }
       break;
 
+    case SGW_GTPV1U_LISTENER_RECV: {
+      OAILOG_DEBUG(LOG_SPGW_APP, "Received SGW_GTPV1U_LISTENER_RECV\n");
+      sgw_handle_gtpv1u_listener_recv(&received_message_p->ittiMsg.sgw_gtpv1u_listener_recv);
+      }
+    break;
+
     case TERMINATE_MESSAGE:{
         sgw_exit();
         itti_exit_task ();

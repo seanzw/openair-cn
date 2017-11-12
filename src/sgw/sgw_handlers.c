@@ -686,6 +686,20 @@ sgw_handle_sgi_endpoint_updated (
 
 //------------------------------------------------------------------------------
 int
+sgw_handle_gtpv1u_listener_recv(
+  const sgw_gtpv1u_listener_recv_t * const message
+) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+
+  OAILOG_DEBUG(LOG_SPGW_APP, "received %d/%d: %s\n",
+    message->buffer_length, strlen(message->buffer), message->buffer);
+
+  int rv = 0;
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
+}
+
+//------------------------------------------------------------------------------
+int
 sgw_handle_sgi_endpoint_deleted (
   const itti_sgi_delete_end_point_request_t * const resp_pP)
 {
