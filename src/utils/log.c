@@ -63,7 +63,7 @@
 
 //-------------------------------
 #define LOG_MAX_QUEUE_ELEMENTS                1024
-#define LOG_MAX_PROTO_NAME_LENGTH               16
+#define LOG_MAX_PROTO_NAME_LENGTH               32
 #define LOG_MESSAGE_MIN_ALLOC_SIZE             256
 
 #define LOG_CONNECT_PERIOD_SEC                   2
@@ -473,6 +473,7 @@ log_init (
   rv = snprintf (&g_oai_log.log_proto2str[LOG_CONFIG][0], LOG_MAX_PROTO_NAME_LENGTH, "CONFIG");
   rv = snprintf (&g_oai_log.log_proto2str[LOG_MSC][0], LOG_MAX_PROTO_NAME_LENGTH, "MSC");
   rv = snprintf (&g_oai_log.log_proto2str[LOG_ITTI][0], LOG_MAX_PROTO_NAME_LENGTH, "ITTI");
+  rv = snprintf (&g_oai_log.log_proto2str[LOG_SPGW_GTPV1U_LISTENER][0], LOG_MAX_PROTO_NAME_LENGTH, "SPGW-GTPV1U-LISTENER");
 
   rv = snprintf (&g_oai_log.log_level2str[OAILOG_LEVEL_TRACE][0], LOG_LEVEL_NAME_MAX_LENGTH, "TRACE");
   rv = snprintf (&g_oai_log.log_level2str[OAILOG_LEVEL_DEBUG][0], LOG_LEVEL_NAME_MAX_LENGTH, "DEBUG");

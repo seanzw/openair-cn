@@ -128,6 +128,8 @@ int sgw_config_parse_file (sgw_config_t * config_pP)
     config_pP->log_config.util_log_level     = MAX_LOG_LEVEL;
     config_pP->log_config.msc_log_level      = MAX_LOG_LEVEL;
     config_pP->log_config.itti_log_level     = MAX_LOG_LEVEL;
+    //By default, we just log everything for convenient now.
+    config_pP->log_config.spgw_gtpv1u_listener_log_level = OAILOG_LEVEL_TRACE;
     if (subsetting) {
       if (config_setting_lookup_string (subsetting, LOG_CONFIG_STRING_OUTPUT, (const char **)&astring)) {
         if (astring != NULL) {

@@ -50,6 +50,7 @@
 #include "sgw.h"
 #include "spgw_config.h"
 #include "pgw_lite_paa.h"
+#include "sgw_gtpv1u_listener.h"
 
 spgw_config_t                           spgw_config;
 sgw_app_t                               sgw_app;
@@ -149,6 +150,11 @@ int sgw_init (spgw_config_t *spgw_config_pP)
 
   if ( gtpv1u_init (spgw_config_pP) < 0) {
     OAILOG_ALERT (LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
+    return RETURNerror;
+  }
+
+  if ( sgw_gtpv1u_listener_init (sgw_app.gtpv1u_data.fd1u)) {
+    OAILOG_ALERT (LOG_SPGW_APP, "Initializing GTPv1-U LISTENER ERROR\n");
     return RETURNerror;
   }
 

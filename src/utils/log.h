@@ -106,6 +106,7 @@ typedef enum {
   LOG_CONFIG,
   LOG_MSC,
   LOG_ITTI,
+  LOG_SPGW_GTPV1U_LISTENER,
   MAX_LOG_PROTOS,
 } log_proto_t;
 
@@ -148,6 +149,7 @@ typedef struct log_config_s {
   log_level_t   util_log_level;     /*!< \brief Misc utilities log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t   msc_log_level;      /*!< \brief MSC utility log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t   itti_log_level;     /*!< \brief ITTI layer log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t   spgw_gtpv1u_listener_log_level;
   uint8_t       asn1_verbosity_level; /*!< \brief related to asn1c generated code for S1AP verbosity level */
   bool          color;              /*!< \brief use of ANSI styling codes or no */
 } log_config_t;

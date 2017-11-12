@@ -522,6 +522,7 @@ add_library (SGW
   ${SGW_DIR}/pgw_config.c
   ${SGW_DIR}/sgw_config.c
   ${SGW_DIR}/s11_causes.c
+  ${SGW_DIR}/sgw_gtpv1u_listener.c
   ${SGW_DIR}/sgw_task.c
   ${SGW_DIR}/sgw_handlers.c
   ${SGW_DIR}/sgw_context_manager.c
