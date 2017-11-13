@@ -1,0 +1,16 @@
+trap "kill 0" EXIT
+
+LOGS_DIR=../../run_dpcm_logs
+mkdir -p ${LOGS_DIR}
+
+SCRIPTS_DIR=..
+# Start new SPGW
+echo "Start new spgw with new_spgw.conf"
+sudo ${SCRIPTS_DIR}/run_spgw -c new_spgw.conf > ${LOGS_DIR}/new_spgw.log 2>&1 &
+
+# Start old SPGW
+echo "Start old spgw with old_spgw.conf"
+sudo ${SCRIPTS_DIR}/run_spgw -c old_spgw.conf > ${LOGS_DIR}/old_spgw.log 2>&1 &
+
+# Wait for finish.
+wait
