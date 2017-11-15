@@ -41,6 +41,7 @@ function help()
   echo_error "Mandatory arguments to long options are mandatory for short options too."
   echo_error "  -c, --clean                               Clean the build generated files: config, object, executable files (build from scratch)"
   echo_error "  -D, --daemon                              Build S/P-GW as a daemon."
+  echo_error "  -M, --dpcm                                Build S/P-GW with DPCM enhancement."
   echo_error "  -f, --force                               No interactive script for installation of software packages."
   echo_error "  -h, --help                                Print this help."
   echo_error "  -i, --check-installed-software            Check installed software packages necessary to build and run S/P-GW (support $SUPPORTED_DISTRO)."
@@ -52,6 +53,7 @@ function main()
 {
   local -i clean=0
   local -i daemon=0
+  local -i dpcm=0
   local -i force=0
   local -i verbose=0
   local -i var_check_install_oai_software=0
@@ -71,6 +73,12 @@ function main()
         daemon=1
         cmake_args="$cmake_args -DDAEMONIZE=1"
         echo "Build S/P-GW as a daemon"
+        shift;
+        ;;
+      -M | --dpcm)
+        dpcm=1
+        cmake_args="$cmake_args -DDPCM=1"
+        echo "Build S/P-GW with DPCM"
         shift;
         ;;
       -f | --force)

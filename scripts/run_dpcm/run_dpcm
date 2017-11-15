@@ -4,6 +4,10 @@ LOGS_DIR=../../run_dpcm_logs
 mkdir -p ${LOGS_DIR}
 
 SCRIPTS_DIR=..
+
+# Build SPGW
+sudo ${SCRIPTS_DIR}/build_spgw -c --dpcm
+
 # Start new SPGW
 echo "Start new spgw with new_spgw.conf"
 sudo ${SCRIPTS_DIR}/run_spgw -c new_spgw.conf > ${LOGS_DIR}/new_spgw.log 2>&1 &
