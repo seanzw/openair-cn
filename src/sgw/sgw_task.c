@@ -159,10 +159,15 @@ int sgw_init (spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
-  if ( sgw_gtpv1u_listener_init (sgw_app.gtpv1u_data.fd1u)) {
+  #ifdef DPCM
+  if (sgw_gtpv1u_listener_init(
+      sgw_app.gtpv1u_data.fd1u,
+      spgw_config_pP->sgw_config.ipv4.S1u_S12_S4_up
+    )) {
     OAILOG_ALERT (LOG_SPGW_APP, "Initializing GTPv1-U LISTENER ERROR\n");
     return RETURNerror;
   }
+  #endif
 
   pgw_load_pool_ip_addresses ();
 

@@ -106,10 +106,10 @@ main (
     exit (-EDEADLK);
   }
 #else
-  if (! is_pid_file_lock_success(pid_file_name)) {
-    free_wrapper((void**) &pid_file_name);
-    exit (-EDEADLK);
-  }
+if (! is_pid_file_lock_success(pid_file_name)) {
+  free_wrapper((void**) &pid_file_name);
+  exit (-EDEADLK);
+}
 #endif
 
 

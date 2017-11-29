@@ -40,6 +40,9 @@
 #define FILE_SGW_MESSAGES_TYPES_SEEN
 
 typedef struct {
+    uint8_t gtpv1u_msg_type;
+    uint32_t old_sgw_gtpv1u_ip;
+    uint16_t old_sgw_gtpv1u_port;
     char* buffer;
     size_t buffer_length;
 } sgw_gtpv1u_listener_recv_t;

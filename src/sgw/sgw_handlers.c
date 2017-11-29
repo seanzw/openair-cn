@@ -691,8 +691,11 @@ sgw_handle_gtpv1u_listener_recv(
 ) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  OAILOG_DEBUG(LOG_SPGW_APP, "received %d/%d: %s\n",
-    message->buffer_length, strlen(message->buffer), message->buffer);
+  OAILOG_DEBUG(LOG_SPGW_APP, "received %d\n",
+    message->buffer_length);
+
+  // Remember to free the buffer.
+  free(message->buffer);
 
   int rv = 0;
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
