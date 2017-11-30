@@ -27,4 +27,4 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
- MESSAGE_DEF(SGW_GTPV1U_LISTENER_RECV, MESSAGE_PRIORITY_MED, sgw_gtpv1u_listener_recv_t, sgw_gtpv1u_listener_recv)
+ MESSAGE_DEF(SGW_GTPV1U_DPCM_MSG, MESSAGE_PRIORITY_MED, sgw_gtpv1u_dpcm_msg_t, sgw_gtpv1u_dpcm_msg)

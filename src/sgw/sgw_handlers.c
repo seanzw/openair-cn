@@ -51,6 +51,7 @@
 #include "sgw_defs.h"
 #include "sgw_handlers.h"
 #include "sgw_context_manager.h"
+#include "sgw_gtpv1u_listener.h"
 #include "sgw.h"
 #include "pgw_lite_paa.h"
 #include "pgw_pco.h"
@@ -687,15 +688,60 @@ sgw_handle_sgi_endpoint_updated (
 //------------------------------------------------------------------------------
 int
 sgw_handle_gtpv1u_listener_recv(
-  const sgw_gtpv1u_listener_recv_t * const message
+  sgw_gtpv1u_dpcm_msg_t * message
 ) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  OAILOG_DEBUG(LOG_SPGW_APP, "received %d\n",
-    message->buffer_length);
+  OAILOG_DEBUG(LOG_SPGW_APP, "received msg %u %d\n",
+    message->gtpv1u_msg_type, message->payload_length);
+
+  switch (message->gtpv1u_msg_type) {
+    case DPCM_MSG_TYPE_P12_2: {
+      // P12-2.
+      // Forward to GW-APP task.
+      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
+                  "P12-2: New GW Received, forward SPGW-APP msg type %u\n",
+                  message->gtpv1u_msg_type);
+      
+      break;
+    }
+    case DPCM_MSG_TYPE_P12_3: {
+      // P12-3. I am old GW.
+      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
+                  "P12-3: Old GW received ip 0x%x.\n", message->ip);
+      // Immediately propose back to new mme via new GW.
+      // Now the message->ip is the new GW ip.
+      // Remember to change message type to DPCM_MSG_TYPE_P13_PROPOSE.
+      message->gtpv1u_msg_type = DPCM_MSG_TYPE_P13_PROPOSE;
+      sgw_send_dpcm_msg_to_task(TASK_DPCM_GW_SOCKET_SEND, message);
+      
+      break;
+    }
+    case DPCM_MSG_TYPE_P13_PROPOSE: {
+      // New GW received old GW's propose (P13).
+      // Forward to GW-APP task.
+      OAILOG_INFO(
+          LOG_SPGW_GTPV1U_LISTENER,
+          "P13-Response: New GW Received, forward SPGW-APP msg type %u\n",
+          message->gtpv1u_msg_type);
+      
+      break;
+    }
+    case DPCM_MSG_TYPE_P13_RESPONSE: {
+      // Old GW received P13 response.
+      // Can be either accept or reject with updated states.
+      // Forward to GW-APP task.
+      OAILOG_INFO(
+          LOG_SPGW_GTPV1U_LISTENER,
+          "P13-Response: Old GW Received, forward SPGW-APP msg type %u\n",
+          message->gtpv1u_msg_type);
+      
+      break;
+    }
+  }
 
   // Remember to free the buffer.
-  free(message->buffer);
+  free(message->payload_buffer);
 
   int rv = 0;
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);

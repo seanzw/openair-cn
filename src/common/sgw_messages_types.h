@@ -39,12 +39,25 @@
 #ifndef FILE_SGW_MESSAGES_TYPES_SEEN
 #define FILE_SGW_MESSAGES_TYPES_SEEN
 
+typedef enum {
+    DPCM_MSG_TYPE_P12_2 = 27,
+    DPCM_MSG_TYPE_P12_3,
+    DPCM_MSG_TYPE_P13_PROPOSE,
+    DPCM_MSG_TYPE_P13_RESPONSE,
+} dpcm_msg_type_t;
+
 typedef struct {
-    uint8_t gtpv1u_msg_type;
-    uint32_t old_sgw_gtpv1u_ip;
-    uint16_t old_sgw_gtpv1u_port;
-    char* buffer;
-    size_t buffer_length;
-} sgw_gtpv1u_listener_recv_t;
+    /** Msg type:
+     * 27 -> P12.2
+     * 28 -> P12.3
+     * 28 -> Old GW propose to new MME (relay by new GW). Old GW's P13
+     * 29 -> New MME response to old GW (relay by new GW). Old GW's P13 response.
+     */
+    dpcm_msg_type_t gtpv1u_msg_type;
+    uint32_t ip;
+    uint16_t port;
+    char* payload_buffer;   // Without any header.s
+    size_t payload_length;
+} sgw_gtpv1u_dpcm_msg_t;
 
 #endif /* FILE_SGW_MESSAGES_TYPES_SEEN */

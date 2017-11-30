@@ -120,9 +120,9 @@ static void *sgw_intertask_interface (void *args_p)
       }
       break;
 
-    case SGW_GTPV1U_LISTENER_RECV: {
-      OAILOG_DEBUG(LOG_SPGW_APP, "Received SGW_GTPV1U_LISTENER_RECV\n");
-      sgw_handle_gtpv1u_listener_recv(&received_message_p->ittiMsg.sgw_gtpv1u_listener_recv);
+    case SGW_GTPV1U_DPCM_MSG: {
+      OAILOG_DEBUG(LOG_SPGW_APP, "Received SGW_GTPV1U_DPCM_MSG\n");
+      sgw_handle_gtpv1u_listener_recv(&received_message_p->ittiMsg.sgw_gtpv1u_dpcm_msg);
       }
     break;
 
