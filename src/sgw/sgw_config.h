@@ -44,6 +44,8 @@
 #define SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S5_S8_UP         "SGW_IPV4_ADDRESS_FOR_S5_S8_UP"
 #define SGW_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11            "SGW_INTERFACE_NAME_FOR_S11"
 #define SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11              "SGW_IPV4_ADDRESS_FOR_S11"
+#define MME_INTERFACE_NAME_FOR_S11                              "MME_INTERFACE_NAME_FOR_S11"
+#define MME_IPV4_ADDRESS_FOR_S11                                "MME_IPV4_ADDRESS_FOR_S11"
 
 #define SPGW_ABORT_ON_ERROR true
 #define SPGW_WARN_ON_ERROR false
@@ -69,6 +71,10 @@ typedef struct sgw_config_s {
     bstring    if_name_S11;
     ipv4_nbo_t S11;
     int        netmask_S11;
+
+    bstring    if_name_mme_S11;
+    ipv4_nbo_t mme_S11;
+    int        netmask_mme_S11;
   } ipv4;
   uint16_t     udp_port_S1u_S12_S4_up;
 

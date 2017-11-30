@@ -964,6 +964,8 @@ extern                                  "C" {
       NW_GTPV2C_INIT_MSG_IE_PARSE_INFO (thiz, NW_GTP_MODIFY_BEARER_RSP);
       NW_GTPV2C_INIT_MSG_IE_PARSE_INFO (thiz, NW_GTP_RELEASE_ACCESS_BEARERS_REQ);
       NW_GTPV2C_INIT_MSG_IE_PARSE_INFO (thiz, NW_GTP_RELEASE_ACCESS_BEARERS_RSP);
+      NW_GTPV2C_INIT_MSG_IE_PARSE_INFO (thiz, NW_GTP_DPCM_PROPOSE_REQ); // DPCM
+      NW_GTPV2C_INIT_MSG_IE_PARSE_INFO (thiz, NW_GTP_DPCM_PROPOSE_RSP); // DPCM
       /*
        * For S10 interface
        */
@@ -1154,7 +1156,9 @@ extern                                  "C" {
     case NW_GTP_DELETE_BEARER_REQ:
     case NW_GTP_RELEASE_ACCESS_BEARERS_REQ:
     case NW_GTP_CREATE_INDIRECT_DATA_FORWARDING_TUNNEL_REQ:
-    case NW_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_REQ:{
+    case NW_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_REQ:
+    case NW_GTP_DPCM_PROPOSE_REQ: // DPCM related
+      {
         rc = nwGtpv2cHandleInitialReq (thiz, msgType, udpData, udpDataLen, peerPort, peerIp);
       }
       break;
@@ -1168,7 +1172,9 @@ extern                                  "C" {
     case NW_GTP_DELETE_BEARER_RSP:
     case NW_GTP_RELEASE_ACCESS_BEARERS_RSP:
     case NW_GTP_CREATE_INDIRECT_DATA_FORWARDING_TUNNEL_RSP:
-    case NW_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_RSP: {
+    case NW_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_RSP: 
+    case NW_GTP_DPCM_PROPOSE_RSP: // DPCM related
+      {
         rc = nwGtpv2cHandleTriggeredRsp (thiz, msgType, udpData, udpDataLen, peerPort, peerIp);
       }
       break;

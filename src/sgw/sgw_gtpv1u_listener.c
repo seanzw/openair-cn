@@ -182,6 +182,7 @@ static void* sgw_gtpv1u_listener(void* unused) {
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
                     "P12-2: New GW Received, forward SPGW-APP msg type %u\n",
                     dpcm_msg.gtpv1u_msg_type);
+        dpcm_msg.ip = ntohl(client_addr.sin_addr.s_addr); // change to the gateway's own ip
         sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
 
         // Forward to old gw.

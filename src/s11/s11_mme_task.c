@@ -95,6 +95,18 @@ s11_mme_ulp_process_stack_req_cb (
 
     break;
 
+  case NW_GTPV2C_ULP_API_INITIAL_REQ_IND:
+    OAILOG_INFO (LOG_S11, "Received initial request indication\n");
+    switch (pUlpApi->apiInfo.initialReqIndInfo.msgType) {
+      case NW_GTP_DPCM_PROPOSE_REQ:
+        OAILOG_INFO (LOG_S11, "Received DPCM propose request indication\n");
+        break;
+      default:
+        OAILOG_WARNING (LOG_S11, "Received unhandled message type %d\n", pUlpApi->apiInfo.initialReqIndInfo.msgType);
+        break;
+      }
+    break;
+
   default:
     break;
   }

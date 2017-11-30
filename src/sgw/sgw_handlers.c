@@ -695,14 +695,35 @@ sgw_handle_gtpv1u_listener_recv(
   OAILOG_DEBUG(LOG_SPGW_APP, "received msg %u %d\n",
     message->gtpv1u_msg_type, message->payload_length);
 
+  OAILOG_INFO(LOG_SPGW_APP,
+    "Before switch: %d\n", DPCM_MSG_TYPE_P12_2 == message->gtpv1u_msg_type);
+
   switch (message->gtpv1u_msg_type) {
     case DPCM_MSG_TYPE_P12_2: {
-      // P12-2.
-      // Forward to GW-APP task.
-      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                  "P12-2: New GW Received, forward SPGW-APP msg type %u\n",
-                  message->gtpv1u_msg_type);
       
+      OAILOG_INFO(LOG_SPGW_APP,
+                  "P12-2: SPGW_APP Received, forward SPGW-APP msg type: DPCM_MSG_TYPE_P12_2\n");
+      
+      // TODO: Read the states from buffer and update local states at GW
+      
+      // Propose the states from the new gateway to MME via S11
+      MessageDef* itti_message;
+      itti_message = itti_alloc_new_message(TASK_SPGW_APP, S11_DPCM_PROPOSE_REQUEST);
+      itti_s11_dpcm_propose_request_t* propose_request = &itti_message->ittiMsg.s11_dpcm_propose_request;
+      
+      // TODO: what teid should be used?
+      propose_request->teid = 0;
+      
+      propose_request->peer_ip = spgw_config.sgw_config.ipv4.mme_S11;
+      // The ip identifies the sender of the states' propose
+      // set to new GW's ip
+      propose_request->proposer_ip = spgw_config.sgw_config.ipv4.S11;
+      propose_request->payload_length = message->payload_length;
+      propose_request->payload_buffer = malloc(propose_request->payload_length);
+      memcpy(propose_request->payload_buffer, message->payload_buffer, message->payload_length);
+      
+      int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
+      OAILOG_INFO(LOG_SPGW_APP, "Send message to task S11 returned %d\n", rv);
       break;
     }
     case DPCM_MSG_TYPE_P12_3: {

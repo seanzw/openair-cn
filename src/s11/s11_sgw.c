@@ -207,6 +207,12 @@ static void *s11_sgw_thread (void *args)
       }
       break;
 
+    case S11_DPCM_PROPOSE_REQUEST:{
+        OAILOG_INFO (LOG_S11, "Received S11_DPCM_PROPOSE_REQUEST from S-PGW APP\n");
+        s11_sgw_handle_dpcm_propose_request(&s11_sgw_stack_handle, &received_message_p->ittiMsg.s11_dpcm_propose_request);
+      }
+      break;
+      
     case TIMER_HAS_EXPIRED:{
         OAILOG_DEBUG (LOG_S11, "Received event TIMER_HAS_EXPIRED for timer_id 0x%lx and arg %p\n",
             received_message_p->ittiMsg.timer_has_expired.timer_id, received_message_p->ittiMsg.timer_has_expired.arg);

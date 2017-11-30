@@ -430,3 +430,54 @@ s11_sgw_handle_delete_session_response (
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
+
+int 
+s11_sgw_handle_dpcm_propose_request(
+  NwGtpv2cStackHandleT * stack_p,
+  itti_s11_dpcm_propose_request_t * dpcm_propose_request_p) 
+{
+  NwGtpv2cUlpApiT                         ulp_req;
+  NwRcT                                   rc;
+
+  DevAssert (stack_p );
+  DevAssert (dpcm_propose_request_p );
+  memset (&ulp_req, 0, sizeof (NwGtpv2cUlpApiT));
+  ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
+  
+  rc = nwGtpv2cMsgNew (*stack_p, NW_TRUE, NW_GTP_DPCM_PROPOSE_REQ, dpcm_propose_request_p->teid, 0, &(ulp_req.hMsg));
+  ulp_req.apiInfo.initialReqInfo.peerIp     = dpcm_propose_request_p->peer_ip;
+  //ulp_req.apiInfo.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
+  ulp_req.apiInfo.initialReqInfo.teidLocal  = 0;
+  ulp_req.apiInfo.initialReqInfo.hUlpTunnel = 0;
+  ulp_req.apiInfo.initialReqInfo.hTunnel    = 0;
+ 
+  /*
+  rc = nwGtpv2cMsgAddIe ((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0, (uint8_t *) & restart_counter);
+  DevAssert (NW_OK == rc);
+  rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
+                              S11_MME_GTP_C,
+                              req_p->sender_fteid_for_cp.teid,
+                              req_p->sender_fteid_for_cp.ipv4 ? ntohl(req_p->sender_fteid_for_cp.ipv4_address) : 0,
+                              req_p->sender_fteid_for_cp.ipv6 ? req_p->sender_fteid_for_cp.ipv6_address : NULL);
+  */
+
+  rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
+  DevAssert (NW_OK == rc);
+  OAILOG_WARNING (LOG_S11, "[DPCM] s11_sgw_handle_dpcm_propose_request sent!\n");
+
+  //MSC_LOG_TX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 CREATE_SESSION_REQUEST local S11 teid " TEID_FMT " num bearers ctx %u",
+  //req_p->sender_fteid_for_cp.teid, req_p->bearer_contexts_to_be_created.num_bearer_context);
+  
+  /*
+  hashtable_rc_t hash_rc = hashtable_ts_insert(s11_mme_teid_2_gtv2c_teid_handle,
+      (hash_key_t) req_p->sender_fteid_for_cp.teid,
+      (void *)ulp_req.apiInfo.initialReqInfo.hTunnel);
+  if (HASH_TABLE_OK == hash_rc) {
+    return RETURNok;
+  } else {
+    OAILOG_WARNING (LOG_S11, "Could not save GTPv2-C hTunnel %p for local teid %X\n", (void*)ulp_req.apiInfo.initialReqInfo.hTunnel, ulp_req.apiInfo.initialReqInfo.teidLocal);
+    return RETURNerror;
+  }
+  */
+  return RETURNok;
+}

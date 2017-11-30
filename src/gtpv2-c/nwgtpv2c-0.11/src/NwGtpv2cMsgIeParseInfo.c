@@ -409,6 +409,16 @@ extern                                  "C" {
     {0, 0, 0}
   };
 
+  static
+  NwGtpv2cMsgIeInfoT                      dpcmProposeReqIeInfoTbl[] = {
+    {NW_GTPV2C_IE_CAUSE, 0, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_OPTIONAL, NULL},
+    {NW_GTPV2C_IE_RECOVERY, 1, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_OPTIONAL, NULL},
+    {NW_GTPV2C_IE_PRIVATE_EXTENSION, 0, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_OPTIONAL, NULL},
+    /*
+     * Do not add below this
+     */
+    {0, 0, 0}
+  };
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
@@ -608,7 +618,13 @@ extern                                  "C" {
           NW_ASSERT (NW_OK == rc);
         }
         break;
-
+      
+      case NW_GTP_DPCM_PROPOSE_REQ:{ // DPCM TAU
+          rc = nwGtpv2cMsgIeParseInfoUpdate (thiz, dpcmProposeReqIeInfoTbl);
+          NW_ASSERT (NW_OK == rc);
+        }
+        break;
+        
       default:{
           free_wrapper ((void**) &thiz);
           thiz = NULL;
