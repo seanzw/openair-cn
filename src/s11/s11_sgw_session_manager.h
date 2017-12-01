@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -22,20 +22,22 @@
 #ifndef FILE_S11_SGW_SESSION_MANAGER_SEEN
 #define FILE_S11_SGW_SESSION_MANAGER_SEEN
 
-int s11_sgw_handle_create_session_request(
-  NwGtpv2cStackHandleT *stack_p,
-  NwGtpv2cUlpApiT      *pUlpApi);
+int s11_sgw_handle_create_session_request(NwGtpv2cStackHandleT *stack_p,
+                                          NwGtpv2cUlpApiT *pUlpApi);
 
 int s11_sgw_handle_create_session_response(
-  NwGtpv2cStackHandleT     *stack_p,
-  itti_s11_create_session_response_t *create_session_response_p);
+    NwGtpv2cStackHandleT *stack_p,
+    itti_s11_create_session_response_t *create_session_response_p);
 
-int s11_sgw_handle_delete_session_request(
-  NwGtpv2cStackHandleT *stack_p,
-  NwGtpv2cUlpApiT      *pUlpApi);
+int s11_sgw_handle_delete_session_request(NwGtpv2cStackHandleT *stack_p,
+                                          NwGtpv2cUlpApiT *pUlpApi);
 
 int s11_sgw_handle_delete_session_response(
-  NwGtpv2cStackHandleT     *stack_p,
-  itti_s11_delete_session_response_t *delete_session_response_p);
+    NwGtpv2cStackHandleT *stack_p,
+    itti_s11_delete_session_response_t *delete_session_response_p);
+
+int s11_sgw_handle_dpcm_propose_request(
+    NwGtpv2cStackHandleT *stack_p,
+    itti_s11_dpcm_propose_request_t *dpcm_propose_request_p);
 
 #endif /* FILE_S11_SGW_SESSION_MANAGER_SEEN */

@@ -451,15 +451,20 @@ s11_sgw_handle_dpcm_propose_request(
   ulp_req.apiInfo.initialReqInfo.hUlpTunnel = 0;
   ulp_req.apiInfo.initialReqInfo.hTunnel    = 0;
  
-  /*
-  rc = nwGtpv2cMsgAddIe ((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0, (uint8_t *) & restart_counter);
+  rc = nwGtpv2cMsgAddIe(
+    (ulp_req.hMsg), 
+    NW_GTPV2C_IE_DPCM_STATES, 
+    dpcm_propose_request_p->payload_length, 
+    0, 
+    dpcm_propose_request_p->payload_buffer
+  );
+
   DevAssert (NW_OK == rc);
-  rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
-                              S11_MME_GTP_C,
-                              req_p->sender_fteid_for_cp.teid,
-                              req_p->sender_fteid_for_cp.ipv4 ? ntohl(req_p->sender_fteid_for_cp.ipv4_address) : 0,
-                              req_p->sender_fteid_for_cp.ipv6 ? req_p->sender_fteid_for_cp.ipv6_address : NULL);
-  */
+  // rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
+  //                             S11_MME_GTP_C,
+  //                             req_p->sender_fteid_for_cp.teid,
+  //                             req_p->sender_fteid_for_cp.ipv4 ? ntohl(req_p->sender_fteid_for_cp.ipv4_address) : 0,
+  //                             req_p->sender_fteid_for_cp.ipv6 ? req_p->sender_fteid_for_cp.ipv6_address : NULL);
 
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);

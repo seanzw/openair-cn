@@ -348,3 +348,101 @@ s11_mme_handle_delete_session_response (
 
   return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
+
+static NwRcT
+s11_dpcm_states_ie_get (
+  uint8_t ieType,
+  uint8_t ieLength,
+  uint8_t ieInstance,
+  uint8_t * ieValue,
+  void *arg) {
+  itti_s11_dpcm_propose_request_t* request = (itti_s11_dpcm_propose_request_t*)arg;
+  switch (ieType) {
+    case NW_GTPV2C_IE_DPCM_STATES: {
+      request->payload_buffer = malloc(ieLength);
+      memcpy(request->payload_buffer, ieValue, ieLength);
+      request->payload_length = ieLength;
+      OAILOG_INFO(LOG_S11, "Parsed payload length: %u\n", request->payload_length);
+      break;
+    }
+    default: {
+      OAILOG_ERROR(LOG_S11, "Unknown ie type! %d\n", ieType);
+      break;
+      return NW_GTPV2C_IE_INCORRECT;
+    }
+  }
+  return NW_OK;
+}
+
+static void print_payload(int log_component, char* buffer, size_t n) {
+  // Print the payload in hex.
+  const size_t HEX_BUFFER_SIZE = 4096;
+  char hex_buffer[HEX_BUFFER_SIZE];
+  for (size_t i = 0, pos = 0; i < n; ++i) {
+    if (pos >= HEX_BUFFER_SIZE) {
+      OAILOG_INFO(log_component,
+                  "Out of boundary! Boom! Not send to old "
+                  "gateway.\n");
+      return;
+    }
+    pos += sprintf(hex_buffer + pos, "%d:0x%02x\n", i, (unsigned)buffer[i]);
+  }
+  OAILOG_INFO(log_component, "Payload: %s\n", hex_buffer);
+}
+
+
+int s11_mme_recv_dpcm_propose_request(
+  NwGtpv2cStackHandleT* stack_p, 
+  NwGtpv2cUlpApiT* propose_p) {
+  OAILOG_INFO(LOG_S11, "Enter s11_mme_recv_dpcm_propose_request\n");
+
+  NwRcT rc;
+  DevAssert (stack_p );
+  MessageDef* message_p = itti_alloc_new_message(TASK_S11, S11_DPCM_PROPOSE_REQUEST);
+  itti_s11_dpcm_propose_request_t* request_p = &message_p->ittiMsg.s11_dpcm_propose_request;
+
+  // resp_p->teid = nwGtpv2cMsgGetTeid(propose_p->hMsg);
+
+  /*
+   * Create a new message parser
+   */
+  NwGtpv2cMsgParserT                     *pMsgParser;
+  rc = nwGtpv2cMsgParserNew(*stack_p, NW_GTP_DPCM_PROPOSE_REQ, s11_ie_indication_generic, NULL, &pMsgParser);
+  DevAssert (NW_OK == rc);
+  /*
+   * NW_GTPV2C_IE_DPCM_STATES IE
+   */
+  rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_DPCM_STATES, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY,
+      s11_dpcm_states_ie_get, request_p);
+  DevAssert (NW_OK == rc);
+
+  /*
+   * Run the parser
+   */
+  uint8_t offendingIeType, offendingIeInstance;
+  uint16_t offendingIeLength;
+  rc = nwGtpv2cMsgParserRun (pMsgParser, (propose_p->hMsg), &offendingIeType, &offendingIeInstance, &offendingIeLength);
+
+  if (rc != NW_OK) {
+    OAILOG_ERROR(LOG_S11, "Parse DPCM propose request failed!\n");
+    itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+    message_p = NULL;
+    rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
+    DevAssert (NW_OK == rc);
+    rc = nwGtpv2cMsgDelete (*stack_p, (propose_p->hMsg));
+    DevAssert (NW_OK == rc);
+    return RETURNerror;
+  }
+
+  OAILOG_INFO(LOG_S11, "About to print the payload @S11_MME!\n");
+  print_payload(LOG_S11, request_p->payload_buffer, request_p->payload_length);
+
+  free(request_p->payload_buffer);
+  itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+
+  rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
+  DevAssert (NW_OK == rc);
+  rc = nwGtpv2cMsgDelete (*stack_p, (propose_p->hMsg));
+  DevAssert (NW_OK == rc);
+  return RETURNok;
+}

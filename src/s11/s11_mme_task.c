@@ -100,6 +100,7 @@ s11_mme_ulp_process_stack_req_cb (
     switch (pUlpApi->apiInfo.initialReqIndInfo.msgType) {
       case NW_GTP_DPCM_PROPOSE_REQ:
         OAILOG_INFO (LOG_S11, "Received DPCM propose request indication\n");
+        ret = s11_mme_recv_dpcm_propose_request(&s11_mme_stack_handle, pUlpApi);
         break;
       default:
         OAILOG_WARNING (LOG_S11, "Received unhandled message type %d\n", pUlpApi->apiInfo.initialReqIndInfo.msgType);
