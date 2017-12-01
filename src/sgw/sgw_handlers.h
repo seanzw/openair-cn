@@ -39,4 +39,5 @@ int sgw_handle_modify_bearer_request (const itti_s11_modify_bearer_request_t  * 
 int sgw_handle_delete_session_request(const itti_s11_delete_session_request_t * const delete_session_p);
 int sgw_handle_release_access_bearers_request(const itti_s11_release_access_bearers_request_t * const release_access_bearers_req_pP);
 int sgw_handle_gtpv1u_listener_recv(sgw_gtpv1u_dpcm_msg_t * message);
+int sgw_handle_dpcm_propose_response(itti_s11_dpcm_propose_response_t* dpcm_propose_p);
 #endif /* FILE_SGW_HANDLERS_SEEN */

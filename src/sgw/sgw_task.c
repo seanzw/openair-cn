@@ -124,7 +124,13 @@ static void *sgw_intertask_interface (void *args_p)
       OAILOG_DEBUG(LOG_SPGW_APP, "Received SGW_GTPV1U_DPCM_MSG\n");
       sgw_handle_gtpv1u_listener_recv(&received_message_p->ittiMsg.sgw_gtpv1u_dpcm_msg);
       }
-    break;
+      break;
+
+    case S11_DPCM_PROPOSE_RESPONSE: {
+      OAILOG_DEBUG(LOG_SPGW_APP, "Received S11_DPCM_PROPOSE_RESPONSE!\n");
+      sgw_handle_dpcm_propose_response(&received_message_p->ittiMsg.s11_dpcm_propose_response);
+      }  
+      break;
 
     case TERMINATE_MESSAGE:{
         sgw_exit();

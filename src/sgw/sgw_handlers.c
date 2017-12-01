@@ -695,9 +695,6 @@ sgw_handle_gtpv1u_listener_recv(
   OAILOG_DEBUG(LOG_SPGW_APP, "received msg %u %d\n",
     message->gtpv1u_msg_type, message->payload_length);
 
-  OAILOG_INFO(LOG_SPGW_APP,
-    "Before switch: %d\n", DPCM_MSG_TYPE_P12_2 == message->gtpv1u_msg_type);
-
   switch (message->gtpv1u_msg_type) {
     case DPCM_MSG_TYPE_P12_2: {
       
@@ -766,6 +763,15 @@ sgw_handle_gtpv1u_listener_recv(
 
   int rv = 0;
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
+}
+
+int 
+sgw_handle_dpcm_propose_response(
+  itti_s11_dpcm_propose_response_t* dpcm_propose_p) {
+    
+  OAILOG_INFO(LOG_SPGW_APP, "sgw is handling dpcm proposeresponse");
+  // Remember to free the buffer.
+  free(dpcm_propose_p->payload_buffer);
 }
 
 //------------------------------------------------------------------------------

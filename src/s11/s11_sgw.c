@@ -80,6 +80,18 @@ static NwRcT s11_sgw_ulp_process_stack_req_cb (NwGtpv2cUlpHandleT hUlp, NwGtpv2c
 
     break;
 
+  case NW_GTPV2C_ULP_API_TRIGGERED_RSP_IND:
+    OAILOG_DEBUG (LOG_S11, "Received triggered response indication\n");
+    switch (pUlpApi->apiInfo.triggeredRspIndInfo.msgType) {
+    case NW_GTP_DPCM_PROPOSE_RSP:
+      OAILOG_DEBUG (LOG_S11, "Received NW_GTP_DPCM_PROPOSE_RSP at S11.\n");
+      ret = s11_sgw_handle_dpcm_propose_response (&s11_sgw_stack_handle, pUlpApi);
+      break;
+    default:
+      OAILOG_WARNING (LOG_S11, "Received unhandled message type %d\n", pUlpApi->apiInfo.triggeredRspIndInfo.msgType);
+      break;
+    }
+    break;
   default:
     OAILOG_ERROR (LOG_S11, "Received unknown stack req message %d\n", pUlpApi->apiType);
     break;

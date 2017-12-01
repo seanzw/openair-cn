@@ -948,4 +948,16 @@ typedef struct {
   uint32_t    peer_ip;
 } itti_s11_dpcm_propose_request_t;
 
+typedef struct {
+  teid_t      teid;                   ///< Tunnel Endpoint Identifier
+  
+  uint32_t    proposer_ip;
+  char*       payload_buffer;
+  size_t      payload_length;
+
+  /* GTPv2-C specific parameters */
+  void       *trxn;
+  uint32_t    peer_ip;
+} itti_s11_dpcm_propose_response_t;
+
 #endif /* FILE_S11_MESSAGES_TYPES_SEEN */

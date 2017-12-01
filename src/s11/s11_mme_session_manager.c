@@ -426,6 +426,10 @@ static void print_payload(int log_component, char *buffer, size_t n) {
   OAILOG_INFO(log_component, "Payload: %s\n", hex_buffer);
 }
 
+/*
+* s11_mme_recv_dpcm_propose_request decodes the dpcm_propose_request from GTPC information elements,
+* and sends the request to MME_APP via ITTI
+*/
 int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
                                       NwGtpv2cUlpApiT *propose_p) {
   OAILOG_INFO(LOG_S11, "Enter s11_mme_recv_dpcm_propose_request\n");
@@ -482,11 +486,53 @@ int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
 
   // free(request_p->payload_buffer);
   // itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 
   rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (propose_p->hMsg));
   DevAssert(NW_OK == rc);
+  return RETURNok;
+}
+
+/*
+* s11_mme_dpcm_propose_response sends the response of the DPCM propose 
+* back to the GW via S11(GTPC)
+*/
+int s11_mme_dpcm_propose_response(NwGtpv2cStackHandleT* stack_p,
+                                  itti_s11_dpcm_propose_response_t* dpcm_propose_response_p) {
+  DevAssert (stack_p);
+  DevAssert (dpcm_propose_response_p );
+
+  NwGtpv2cTrxnHandleT trxn = (NwGtpv2cTrxnHandleT) dpcm_propose_response_p->trxn;
+  DevAssert (trxn );
+  /*
+   * Prepare a delete session response to send to MME.
+   */
+  NwRcT rc;
+  NwGtpv2cUlpApiT ulp_req;
+  memset (&ulp_req, 0, sizeof (NwGtpv2cUlpApiT));
+  ulp_req.apiType = NW_GTPV2C_ULP_API_TRIGGERED_RSP;
+  ulp_req.apiInfo.triggeredRspInfo.hTrxn = trxn;
+  rc = nwGtpv2cMsgNew (*stack_p, NW_TRUE, NW_GTP_DPCM_PROPOSE_RSP, 0, 0, &(ulp_req.hMsg));
+  DevAssert (NW_OK == rc);
+
+  /*
+   * Set the remote TEID
+   */
+  rc = nwGtpv2cMsgSetTeid (ulp_req.hMsg, dpcm_propose_response_p->teid);
+  DevAssert (NW_OK == rc);
+
+  rc = nwGtpv2cMsgAddIe(
+    (ulp_req.hMsg), 
+    NW_GTPV2C_IE_DPCM_STATES, 
+    dpcm_propose_response_p->payload_length, 
+    0, 
+    dpcm_propose_response_p->payload_buffer
+  );
+  DevAssert (NW_OK == rc);
+
+  rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
+  DevAssert (NW_OK == rc);
   return RETURNok;
 }

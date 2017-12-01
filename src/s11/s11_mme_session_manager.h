@@ -39,5 +39,5 @@ int s11_mme_modify_bearer_request(NwGtpv2cStackHandleT *stack_p, itti_s11_modify
 
 int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT* stack_p, NwGtpv2cUlpApiT* propose_p);
 
-
+int s11_mme_dpcm_propose_response(NwGtpv2cStackHandleT* stack_p, itti_s11_dpcm_propose_response_t* dpcm_propose_response_p);
 #endif /* FILE_S11_MME_SESSION_MANAGER_SEEN */

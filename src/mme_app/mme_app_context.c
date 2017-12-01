@@ -948,12 +948,27 @@ mme_app_handle_enb_deregister_ind(const itti_s1ap_eNB_deregistered_ind_t const *
   }
 }
 
-
 /**
  * Handle DPCM proposed request.
  */
 void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* request_p) {
   OAILOG_INFO(LOG_MME_APP, "Received itti_s11_dpcm_propose_request_t\n");
+
+  // Process the states, reply the propose with accept or reject with updated states
+  MessageDef* itti_message = itti_alloc_new_message(TASK_MME_APP, S11_DPCM_PROPOSE_RESPONSE);
+  itti_s11_dpcm_propose_response_t* propose_response_p = &itti_message->ittiMsg.s11_dpcm_propose_response;
+  
+  propose_response_p->proposer_ip = request_p->proposer_ip;
+  propose_response_p->peer_ip = request_p->peer_ip;
+  propose_response_p->trxn    = request_p->trxn;
+  // TODO: what teid to used? How to represent ACCEPT and REJECT in payload
+  propose_response_p->teid = 0;
+  propose_response_p->payload_length = request_p->payload_length;
+  propose_response_p->payload_buffer = malloc(request_p->payload_length);
+  memcpy(propose_response_p->payload_buffer, request_p->payload_buffer, request_p->payload_length);
+
+  int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
+  OAILOG_INFO(LOG_MME_APP, "MME_APP Send message S11_DPCM_PROPOSE_RESPONSE to task S11 returned %d\n", rv);
 }
 
 /*

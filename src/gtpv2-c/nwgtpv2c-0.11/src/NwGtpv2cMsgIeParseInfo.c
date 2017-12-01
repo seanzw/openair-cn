@@ -417,6 +417,15 @@ extern                                  "C" {
      */
     {0, 0, 0}
   };
+
+  static
+  NwGtpv2cMsgIeInfoT                      dpcmProposeRspIeInfoTbl[] = {
+    {NW_GTPV2C_IE_DPCM_STATES, 0, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY, NULL},
+    /*
+     * Do not add below this
+     */
+    {0, 0, 0}
+  };
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
@@ -622,7 +631,10 @@ extern                                  "C" {
           NW_ASSERT (NW_OK == rc);
         }
         break;
-        
+      case NW_GTP_DPCM_PROPOSE_RSP:{ // DPCM TAU
+          rc = nwGtpv2cMsgIeParseInfoUpdate (thiz, dpcmProposeRspIeInfoTbl);
+          NW_ASSERT (NW_OK == rc);
+        }
       default:{
           free_wrapper ((void**) &thiz);
           thiz = NULL;

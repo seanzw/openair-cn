@@ -209,6 +209,11 @@ s11_mme_thread (
         s11_mme_release_access_bearers_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_release_access_bearers_request);
       }
       break;
+    
+    case S11_DPCM_PROPOSE_RESPONSE: {
+        s11_mme_dpcm_propose_response(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_dpcm_propose_response);
+      }
+      break;
 
     case UDP_DATA_IND:{
         /*

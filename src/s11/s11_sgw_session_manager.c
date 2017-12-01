@@ -486,3 +486,89 @@ s11_sgw_handle_dpcm_propose_request(
   */
   return RETURNok;
 }
+
+
+static NwRcT s11_propose_rsp_ie_get(uint8_t ieType, uint8_t ieLength,
+                                    uint8_t ieInstance, uint8_t *ieValue,
+                                    void *arg) {
+  itti_s11_dpcm_propose_response_t *response =
+      (itti_s11_dpcm_propose_response_t *)arg;
+  switch (ieType) {
+    case NW_GTPV2C_IE_DPCM_STATES: {
+      response->payload_buffer = malloc(ieLength);
+      memcpy(response->payload_buffer, ieValue, ieLength);
+      response->payload_length = ieLength;
+      OAILOG_INFO(LOG_S11, "Parsed payload length: %u\n",
+                  response->payload_length);
+      break;
+    }
+    default: {
+      OAILOG_ERROR(LOG_S11, "Unknown ie type! %d\n", ieType);
+      break;
+      return NW_GTPV2C_IE_INCORRECT;
+    }
+  }
+  return NW_OK;
+}
+
+/*
+* s11_sgw_handle_dpcm_propose_response decodes the dpcm_propose_response from GTPC information elements
+* and sends the response to SPGW_APP via ITTI
+*/
+int s11_sgw_handle_dpcm_propose_response(NwGtpv2cStackHandleT *stack_p,
+                                         NwGtpv2cUlpApiT *propose_response_p) {
+  OAILOG_INFO(LOG_S11, "Enter s11_sgw_handle_dpcm_propose_response\n");
+
+  NwRcT rc;
+  DevAssert(stack_p);
+  MessageDef *message_p =
+      itti_alloc_new_message(TASK_S11, S11_DPCM_PROPOSE_RESPONSE);
+  itti_s11_dpcm_propose_response_t *response_p =
+      &message_p->ittiMsg.s11_dpcm_propose_response;
+
+  response_p->teid = nwGtpv2cMsgGetTeid(propose_response_p->hMsg);
+  /*
+   * Create a new message parser
+   */
+  NwGtpv2cMsgParserT *pMsgParser;
+  rc = nwGtpv2cMsgParserNew(*stack_p, NW_GTP_DPCM_PROPOSE_RSP,
+                            s11_ie_indication_generic, NULL, &pMsgParser);
+  DevAssert(NW_OK == rc);
+  /*
+   * NW_GTPV2C_IE_DPCM_STATES IE
+   */
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_DPCM_STATES, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_MANDATORY, s11_propose_rsp_ie_get, response_p);
+  DevAssert(NW_OK == rc);
+
+  /*
+   * Run the parser
+   */
+  uint8_t offendingIeType, offendingIeInstance;
+  uint16_t offendingIeLength;
+  rc = nwGtpv2cMsgParserRun(pMsgParser, (propose_response_p->hMsg), &offendingIeType,
+                            &offendingIeInstance, &offendingIeLength);
+
+  if (rc != NW_OK) {
+    OAILOG_ERROR(LOG_S11, "Parse DPCM propose request failed!\n");
+    itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
+    message_p = NULL;
+    rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
+    DevAssert(NW_OK == rc);
+    rc = nwGtpv2cMsgDelete(*stack_p, (propose_response_p->hMsg));
+    DevAssert(NW_OK == rc);
+    return RETURNerror;
+  }
+
+  //OAILOG_INFO(LOG_S11, "About to print the payload @S11_SPGW: s11_sgw_handle_dpcm_propose_response!\n");
+  //print_payload(LOG_S11, response_p->payload_buffer, response_p->payload_length);
+
+  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+
+  rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
+  DevAssert(NW_OK == rc);
+  rc = nwGtpv2cMsgDelete(*stack_p, (propose_response_p->hMsg));
+  DevAssert(NW_OK == rc);
+  return RETURNok;
+}

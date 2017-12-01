@@ -84,7 +84,7 @@ extern "C" {
 #define NW_GTP_DELETE_PDN_CONNECTION_SET_REQ                    (101)
 #define NW_GTP_DELETE_PDN_CONNECTION_SET_RSP                    (102)
 #define NW_GTP_DPCM_PROPOSE_REQ                                 (103) // DPCM related GTPC msg types
-#define NW_GTP_DPCM_PROPOSE_RSP                                 (104)
+#define NW_GTP_DPCM_PROPOSE_RSP                                 (104) // DPCM related GTPC msg types
 #define NW_GTP_IDENTIFICATION_REQ                               (128)
 #define NW_GTP_IDENTIFICATION_RSP                               (129)
 #define NW_GTP_CONTEXT_REQ                                      (130)
