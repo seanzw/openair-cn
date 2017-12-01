@@ -196,8 +196,13 @@ void *mme_app_thread (
 
     case S1AP_ENB_DEREGISTERED_IND: {
         mme_app_handle_enb_deregister_ind(&received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
+        break;
     }
-    break;
+    
+    case S11_DPCM_PROPOSE_REQUEST: {
+      mme_app_handle_dpcm_propose_request(&received_message_p->ittiMsg.s11_dpcm_propose_request);
+      break;
+    }
 
     default:{
         OAILOG_DEBUG (LOG_MME_APP, "Unkwnon message ID %d:%s\n", ITTI_MSG_ID (received_message_p), ITTI_MSG_NAME (received_message_p));

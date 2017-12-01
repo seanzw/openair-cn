@@ -948,6 +948,14 @@ mme_app_handle_enb_deregister_ind(const itti_s1ap_eNB_deregistered_ind_t const *
   }
 }
 
+
+/**
+ * Handle DPCM proposed request.
+ */
+void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* request_p) {
+  OAILOG_INFO(LOG_MME_APP, "Received itti_s11_dpcm_propose_request_t\n");
+}
+
 /*
    From GPP TS 23.401 version 11.11.0 Release 11, section 5.3.5 S1 release procedure, point 6:
    The MME deletes any eNodeB related information ("eNodeB Address in Use for S1-MME" and "eNB UE S1AP
