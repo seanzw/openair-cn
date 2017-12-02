@@ -200,6 +200,7 @@ void *mme_app_thread (
     }
     
     case S11_DPCM_PROPOSE_REQUEST: {
+      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_PROPOSE_REQUEST\n");
       mme_app_handle_dpcm_propose_request(&received_message_p->ittiMsg.s11_dpcm_propose_request);
       break;
     }

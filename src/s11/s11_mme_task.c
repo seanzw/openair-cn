@@ -96,10 +96,9 @@ s11_mme_ulp_process_stack_req_cb (
     break;
 
   case NW_GTPV2C_ULP_API_INITIAL_REQ_IND:
-    OAILOG_INFO (LOG_S11, "Received initial request indication\n");
     switch (pUlpApi->apiInfo.initialReqIndInfo.msgType) {
       case NW_GTP_DPCM_PROPOSE_REQ:
-        OAILOG_INFO (LOG_S11, "Received DPCM propose request indication\n");
+        OAILOG_INFO (LOG_S11, "[DPCM] Received NW_GTP_DPCM_PROPOSE_REQ\n");
         ret = s11_mme_recv_dpcm_propose_request(&s11_mme_stack_handle, pUlpApi);
         break;
       default:
@@ -211,6 +210,7 @@ s11_mme_thread (
       break;
     
     case S11_DPCM_PROPOSE_RESPONSE: {
+        OAILOG_DEBUG (LOG_S11, "[DPCM] S11_MME received S11_DPCM_PROPOSE_RESPONSE\n");
         s11_mme_dpcm_propose_response(&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_dpcm_propose_response);
       }
       break;

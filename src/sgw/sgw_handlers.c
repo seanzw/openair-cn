@@ -685,27 +685,24 @@ sgw_handle_sgi_endpoint_updated (
   }
 }
 
-//------------------------------------------------------------------------------
+/**
+ * This is where the SPGW handles incoming GTPU message from the UDP stack
+*/
 int
 sgw_handle_gtpv1u_listener_recv(
   sgw_gtpv1u_dpcm_msg_t * message
 ) {
-  OAILOG_FUNC_IN(LOG_SPGW_APP);
-
-  OAILOG_DEBUG(LOG_SPGW_APP, "received msg %u %d\n",
-    message->gtpv1u_msg_type, message->payload_length);
 
   switch (message->gtpv1u_msg_type) {
     case DPCM_MSG_TYPE_P12_2: {
       
       OAILOG_INFO(LOG_SPGW_APP,
-                  "P12-2: SPGW_APP Received, forward SPGW-APP msg type: DPCM_MSG_TYPE_P12_2\n");
+                  "[DPCM] SPGW_APP Received DPCM_MSG_TYPE_P12_2.\n");
       
       // TODO: Read the states from buffer and update local states at GW
       
       // Propose the states from the new gateway to MME via S11
-      MessageDef* itti_message;
-      itti_message = itti_alloc_new_message(TASK_SPGW_APP, S11_DPCM_PROPOSE_REQUEST);
+      MessageDef* itti_message = itti_alloc_new_message(TASK_SPGW_APP, S11_DPCM_PROPOSE_REQUEST);
       itti_s11_dpcm_propose_request_t* propose_request = &itti_message->ittiMsg.s11_dpcm_propose_request;
       
       // TODO: what teid should be used?
@@ -720,30 +717,25 @@ sgw_handle_gtpv1u_listener_recv(
       memcpy(propose_request->payload_buffer, message->payload_buffer, message->payload_length);
       
       int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
-      OAILOG_INFO(LOG_SPGW_APP, "Send message to task S11 returned %d\n", rv);
+      OAILOG_INFO(LOG_SPGW_APP, "[DPCM] SPGW_APP Send S11_DPCM_PROPOSE_REQUEST to TASK_S11 returned %d\n", rv);
       break;
     }
     case DPCM_MSG_TYPE_P12_3: {
-      // P12-3. I am old GW.
-      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                  "P12-3: Old GW received ip 0x%x.\n", message->ip);
+      OAILOG_INFO(LOG_SPGW_APP,
+                  "[DPCM] SPGW_APP Received DPCM_MSG_TYPE_P12_3. New GW's ip is 0x%x.\n", message->ip);
       // Immediately propose back to new mme via new GW.
       // Now the message->ip is the new GW ip.
       // Remember to change message type to DPCM_MSG_TYPE_P13_PROPOSE.
       message->gtpv1u_msg_type = DPCM_MSG_TYPE_P13_PROPOSE;
       sgw_send_dpcm_msg_to_task(TASK_DPCM_GW_SOCKET_SEND, message);
-      
+      OAILOG_INFO(LOG_SPGW_APP, "[DPCM] SPGW_APP Send DPCM_MSG_TYPE_P13_PROPOSE to TASK_DPCM_GW_SOCKET_SEND\n");
       break;
     }
     case DPCM_MSG_TYPE_P13_PROPOSE: {
       // New GW received old GW's propose (P13).
-      // Forward to GW-APP task.
-      OAILOG_INFO(
-          LOG_SPGW_GTPV1U_LISTENER,
-          "P13-Response: New GW Received, forward SPGW-APP msg type %u\n",
-          message->gtpv1u_msg_type);
+      OAILOG_INFO(LOG_SPGW_APP,
+                  "[DPCM] SPGW_APP Received DPCM_MSG_TYPE_P13_PROPOSE. Old GW(proposer)'s ip is 0x%x.\n", message->ip);
       
-      // Propose the states from the old gateway to MME via S11
       MessageDef* itti_message;
       itti_message = itti_alloc_new_message(TASK_SPGW_APP, S11_DPCM_PROPOSE_REQUEST);
       itti_s11_dpcm_propose_request_t* propose_request = &itti_message->ittiMsg.s11_dpcm_propose_request;
@@ -754,26 +746,22 @@ sgw_handle_gtpv1u_listener_recv(
       propose_request->peer_ip = spgw_config.sgw_config.ipv4.mme_S11;
       // The ip identifies the sender of the states' propose
       // set to old GW's ip
-      propose_request->proposer_ip = message->ip;
+      propose_request->proposer_ip = htonl(message->ip);
       propose_request->payload_length = message->payload_length;
       propose_request->payload_buffer = malloc(propose_request->payload_length);
       memcpy(propose_request->payload_buffer, message->payload_buffer, message->payload_length);
       
       int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
-      OAILOG_INFO(LOG_SPGW_APP, "Send message to task S11 returned %d\n", rv);
-      break;
+      OAILOG_INFO(LOG_SPGW_APP, "[DPCM] SPGW_APP sends DPCM_MSG_TYPE_P13_PROPOSE to TASK_S11 returned %d\n", rv);
 
       break;
     }
     case DPCM_MSG_TYPE_P13_RESPONSE: {
       // Old GW received P13 response.
       // Can be either accept or reject with updated states.
-      // Forward to GW-APP task.
-      OAILOG_INFO(
-          LOG_SPGW_GTPV1U_LISTENER,
-          "P13-Response: Old GW Received, forward SPGW-APP msg type %u\n",
-          message->gtpv1u_msg_type);
       
+      OAILOG_INFO(LOG_SPGW_APP,
+                  "[DPCM] SPGW_APP Received DPCM_MSG_TYPE_P13_RESPONSE.");
       break;
     }
   }
@@ -785,12 +773,20 @@ sgw_handle_gtpv1u_listener_recv(
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
+/**
+ * This is where the GW_APP receives the response of the DPCM states propose.
+ * If the proposer is not the new GW, the response needs to be forwarded to the old GW.
+*/
 int 
 sgw_handle_dpcm_propose_response(
   itti_s11_dpcm_propose_response_t* dpcm_propose_p) {
-    
-  OAILOG_INFO(LOG_SPGW_APP, "sgw is handling dpcm propose response to 0x%x\n", 
+
+  OAILOG_INFO(LOG_SPGW_APP, "[DPCM] SPGW is handling dpcm propose response. Proposer: 0x%x\n", 
     dpcm_propose_p->proposer_ip);
+
+  OAILOG_INFO(LOG_SPGW_APP, "[DPCM] Printing spgw_config.sgw_config.ipv4.S11: 0x%x\n", 
+    spgw_config.sgw_config.ipv4.S11);
+      
   // Remember to free the buffer.
   // Compare proposer ip with self ip.
   // If not equal, it means this is a response to old gateway,
@@ -807,11 +803,12 @@ sgw_handle_dpcm_propose_response(
     memcpy(dpcm_msg.payload_buffer, dpcm_propose_p->payload_buffer, 
       dpcm_propose_p->payload_length);
     dpcm_msg.payload_length = dpcm_propose_p->payload_length;
-    OAILOG_INFO(LOG_SPGW_APP, "new GW is forwarding response to old gw at 0x%x\n", 
+    OAILOG_INFO(LOG_SPGW_APP, "[DPCM] new GW is forwarding response to old GW at 0x%x\n", 
       dpcm_propose_p->proposer_ip);
     sgw_send_dpcm_msg_to_task(TASK_DPCM_GW_SOCKET_SEND, &dpcm_msg);
+  } else {
+    // process the propose response
   }
-
   free(dpcm_propose_p->payload_buffer);
 }
 

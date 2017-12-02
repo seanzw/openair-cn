@@ -461,7 +461,7 @@ s11_sgw_handle_dpcm_propose_request(
 
   DevAssert (NW_OK == rc);
 
-  OAILOG_INFO(LOG_S11, "Send proposer ip as 0x%x\n", dpcm_propose_request_p->proposer_ip);
+  OAILOG_INFO(LOG_S11, "[DPCM] Send proposer ip as 0x%x\n", dpcm_propose_request_p->proposer_ip);
   rc = nwGtpv2cMsgAddIe(
     (ulp_req.hMsg), 
     NW_GTPV2C_IE_DPCM_PROPOSER_IP, 
@@ -472,30 +472,9 @@ s11_sgw_handle_dpcm_propose_request(
 
   DevAssert (NW_OK == rc);
 
-  // rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
-  //                             S11_MME_GTP_C,
-  //                             req_p->sender_fteid_for_cp.teid,
-  //                             req_p->sender_fteid_for_cp.ipv4 ? ntohl(req_p->sender_fteid_for_cp.ipv4_address) : 0,
-  //                             req_p->sender_fteid_for_cp.ipv6 ? req_p->sender_fteid_for_cp.ipv6_address : NULL);
-
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);
   OAILOG_WARNING (LOG_S11, "[DPCM] s11_sgw_handle_dpcm_propose_request sent!\n");
-
-  //MSC_LOG_TX_MESSAGE (MSC_S11_MME, MSC_SGW, NULL, 0, "0 CREATE_SESSION_REQUEST local S11 teid " TEID_FMT " num bearers ctx %u",
-  //req_p->sender_fteid_for_cp.teid, req_p->bearer_contexts_to_be_created.num_bearer_context);
-  
-  /*
-  hashtable_rc_t hash_rc = hashtable_ts_insert(s11_mme_teid_2_gtv2c_teid_handle,
-      (hash_key_t) req_p->sender_fteid_for_cp.teid,
-      (void *)ulp_req.apiInfo.initialReqInfo.hTunnel);
-  if (HASH_TABLE_OK == hash_rc) {
-    return RETURNok;
-  } else {
-    OAILOG_WARNING (LOG_S11, "Could not save GTPv2-C hTunnel %p for local teid %X\n", (void*)ulp_req.apiInfo.initialReqInfo.hTunnel, ulp_req.apiInfo.initialReqInfo.teidLocal);
-    return RETURNerror;
-  }
-  */
   return RETURNok;
 }
 
@@ -536,8 +515,6 @@ static NwRcT s11_propose_rsp_ie_get(uint8_t ieType, uint8_t ieLength,
 */
 int s11_sgw_handle_dpcm_propose_response(NwGtpv2cStackHandleT *stack_p,
                                          NwGtpv2cUlpApiT *propose_response_p) {
-  OAILOG_INFO(LOG_S11, "Enter s11_sgw_handle_dpcm_propose_response\n");
-
   NwRcT rc;
   DevAssert(stack_p);
   MessageDef *message_p =
@@ -585,10 +562,13 @@ int s11_sgw_handle_dpcm_propose_response(NwGtpv2cStackHandleT *stack_p,
     return RETURNerror;
   }
 
-  //OAILOG_INFO(LOG_S11, "About to print the payload @S11_SPGW: s11_sgw_handle_dpcm_propose_response!\n");
+  
   //print_payload(LOG_S11, response_p->payload_buffer, response_p->payload_length);
 
   itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+
+  OAILOG_INFO(LOG_S11,
+    "[DPCM] TASK_S11 sent S11_DPCM_PROPOSE_RESPONSE to TASK_SPGW_APP\n");
 
   rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
   DevAssert(NW_OK == rc);

@@ -35,5 +35,9 @@ MESSAGE_DEF(S11_DELETE_SESSION_REQUEST,  MESSAGE_PRIORITY_MED, itti_s11_delete_s
 MESSAGE_DEF(S11_DELETE_SESSION_RESPONSE, MESSAGE_PRIORITY_MED, itti_s11_delete_session_response_t, s11_delete_session_response)
 MESSAGE_DEF(S11_RELEASE_ACCESS_BEARERS_REQUEST, MESSAGE_PRIORITY_MED, itti_s11_release_access_bearers_request_t, s11_release_access_bearers_request)
 MESSAGE_DEF(S11_RELEASE_ACCESS_BEARERS_RESPONSE, MESSAGE_PRIORITY_MED, itti_s11_release_access_bearers_response_t, s11_release_access_bearers_response)
+
+// TASK_SPGW_APP -> TASK_S11, TASK_S11 -> TASK_MME_APP
 MESSAGE_DEF(S11_DPCM_PROPOSE_REQUEST, MESSAGE_PRIORITY_MED, itti_s11_dpcm_propose_request_t, s11_dpcm_propose_request)
+
+// TASK_MME_APP -> TASK_S11, TASK_S11 -> TASK_SPGW_APP
 MESSAGE_DEF(S11_DPCM_PROPOSE_RESPONSE, MESSAGE_PRIORITY_MED, itti_s11_dpcm_propose_response_t, s11_dpcm_propose_response)

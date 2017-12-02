@@ -81,10 +81,9 @@ static NwRcT s11_sgw_ulp_process_stack_req_cb (NwGtpv2cUlpHandleT hUlp, NwGtpv2c
     break;
 
   case NW_GTPV2C_ULP_API_TRIGGERED_RSP_IND:
-    OAILOG_DEBUG (LOG_S11, "Received triggered response indication\n");
     switch (pUlpApi->apiInfo.triggeredRspIndInfo.msgType) {
     case NW_GTP_DPCM_PROPOSE_RSP:
-      OAILOG_DEBUG (LOG_S11, "Received NW_GTP_DPCM_PROPOSE_RSP at S11.\n");
+      OAILOG_DEBUG (LOG_S11, "[S11_SGW] S11_SGW Received NW_GTP_DPCM_PROPOSE_RSP.\n");
       ret = s11_sgw_handle_dpcm_propose_response (&s11_sgw_stack_handle, pUlpApi);
       break;
     default:
@@ -221,7 +220,7 @@ static void *s11_sgw_thread (void *args)
       break;
 
     case S11_DPCM_PROPOSE_REQUEST:{
-        OAILOG_INFO (LOG_S11, "Received S11_DPCM_PROPOSE_REQUEST from S-PGW APP\n");
+        OAILOG_INFO (LOG_S11, "[DPCM] S11_SGW received S11_DPCM_PROPOSE_REQUEST from S-PGW APP\n");
         s11_sgw_handle_dpcm_propose_request(&s11_sgw_stack_handle, &received_message_p->ittiMsg.s11_dpcm_propose_request);
       }
       break;
