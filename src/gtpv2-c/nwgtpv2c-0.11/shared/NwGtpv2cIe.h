@@ -49,6 +49,7 @@
 #define NW_GTPV2C_IE_CAUSE                                              (2)
 #define NW_GTPV2C_IE_RECOVERY                                           (3)
 #define NW_GTPV2C_IE_DPCM_STATES                                        (4)
+#define NW_GTPV2C_IE_DPCM_PROPOSER_IP                                   (5)
 #define NW_GTPV2C_IE_APN                                                (71)
 #define NW_GTPV2C_IE_AMBR                                               (72)
 #define NW_GTPV2C_IE_EBI                                                (73)

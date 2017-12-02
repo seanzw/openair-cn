@@ -182,7 +182,6 @@ static void* sgw_gtpv1u_listener(void* unused) {
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
                     "P12-2: New GW Received, forward SPGW-APP msg type %u\n",
                     dpcm_msg.gtpv1u_msg_type);
-        dpcm_msg.ip = ntohl(client_addr.sin_addr.s_addr); // change to the gateway's own ip
         sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
 
         // Forward to old gw.
@@ -213,11 +212,15 @@ static void* sgw_gtpv1u_listener(void* unused) {
       case DPCM_MSG_TYPE_P13_PROPOSE: {
         // New GW received old GW's propose (P13).
         // Forward to GW-APP task.
+        // IP is proposer (old GW) ip.
+        dpcm_msg.ip = ntohl(client_addr.sin_addr.s_addr);
+        dpcm_msg.port = ntohs(client_addr.sin_port);
+        sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
+
         OAILOG_INFO(
             LOG_SPGW_GTPV1U_LISTENER,
-            "P13-Propose: New GW Received, forward SPGW-APP msg type %u\n",
-            dpcm_msg.gtpv1u_msg_type);
-        sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
+            "P13-Propose: New GW Received, forward SPGW-APP msg type %u from old GW 0x%x\n",
+            dpcm_msg.gtpv1u_msg_type, dpcm_msg.ip);
         break;
       }
       case DPCM_MSG_TYPE_P13_RESPONSE: {

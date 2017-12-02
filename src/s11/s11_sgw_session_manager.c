@@ -460,6 +460,18 @@ s11_sgw_handle_dpcm_propose_request(
   );
 
   DevAssert (NW_OK == rc);
+
+  OAILOG_INFO(LOG_S11, "Send proposer ip as 0x%x\n", dpcm_propose_request_p->proposer_ip);
+  rc = nwGtpv2cMsgAddIe(
+    (ulp_req.hMsg), 
+    NW_GTPV2C_IE_DPCM_PROPOSER_IP, 
+    sizeof(dpcm_propose_request_p->proposer_ip), 
+    0, 
+    &dpcm_propose_request_p->proposer_ip
+  );
+
+  DevAssert (NW_OK == rc);
+
   // rc = nwGtpv2cMsgAddIeFteid ((ulp_req.hMsg), NW_GTPV2C_IE_INSTANCE_ZERO,
   //                             S11_MME_GTP_C,
   //                             req_p->sender_fteid_for_cp.teid,
@@ -502,6 +514,13 @@ static NwRcT s11_propose_rsp_ie_get(uint8_t ieType, uint8_t ieLength,
                   response->payload_length);
       break;
     }
+    case NW_GTPV2C_IE_DPCM_PROPOSER_IP: {
+      // memcpy(&response->proposer_ip, ieValue, ieLength);
+      response->proposer_ip = ntohl(*(uint32_t*)ieValue);
+      OAILOG_INFO(LOG_S11, "Parsed proposer ip: 0x%x\n", 
+                  response->proposer_ip);
+      break;
+    }
     default: {
       OAILOG_ERROR(LOG_S11, "Unknown ie type! %d\n", ieType);
       break;
@@ -542,6 +561,11 @@ int s11_sgw_handle_dpcm_propose_response(NwGtpv2cStackHandleT *stack_p,
       NW_GTPV2C_IE_PRESENCE_MANDATORY, s11_propose_rsp_ie_get, response_p);
   DevAssert(NW_OK == rc);
 
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_DPCM_PROPOSER_IP, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_MANDATORY, s11_propose_rsp_ie_get, response_p);
+  DevAssert(NW_OK == rc);
+
   /*
    * Run the parser
    */
@@ -551,7 +575,7 @@ int s11_sgw_handle_dpcm_propose_response(NwGtpv2cStackHandleT *stack_p,
                             &offendingIeInstance, &offendingIeLength);
 
   if (rc != NW_OK) {
-    OAILOG_ERROR(LOG_S11, "Parse DPCM propose request failed!\n");
+    OAILOG_ERROR(LOG_S11, "Parse DPCM propose response failed!\n");
     itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
     message_p = NULL;
     rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);

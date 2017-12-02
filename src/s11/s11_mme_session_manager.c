@@ -401,6 +401,14 @@ static NwRcT s11_dpcm_states_ie_get(uint8_t ieType, uint8_t ieLength,
                   request->payload_length);
       break;
     }
+    case NW_GTPV2C_IE_DPCM_PROPOSER_IP: {
+        // memcpy(&request->proposer_ip, ieValue, ieLength);
+
+        request->proposer_ip = ntohl(*(uint32_t*)ieValue);
+        OAILOG_INFO(LOG_S11, "Parsed proposer ip: 0x%x\n", 
+                    request->proposer_ip);
+        break;
+    }
     default: {
       OAILOG_ERROR(LOG_S11, "Unknown ie type! %d\n", ieType);
       break;
@@ -459,6 +467,11 @@ int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
    */
   rc = nwGtpv2cMsgParserAddIe(
       pMsgParser, NW_GTPV2C_IE_DPCM_STATES, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_MANDATORY, s11_dpcm_states_ie_get, request_p);
+  DevAssert(NW_OK == rc);
+
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_DPCM_PROPOSER_IP, NW_GTPV2C_IE_INSTANCE_ZERO,
       NW_GTPV2C_IE_PRESENCE_MANDATORY, s11_dpcm_states_ie_get, request_p);
   DevAssert(NW_OK == rc);
 
@@ -530,6 +543,15 @@ int s11_mme_dpcm_propose_response(NwGtpv2cStackHandleT* stack_p,
     0, 
     dpcm_propose_response_p->payload_buffer
   );
+
+  rc = nwGtpv2cMsgAddIe(
+    (ulp_req.hMsg), 
+    NW_GTPV2C_IE_DPCM_PROPOSER_IP, 
+    sizeof(dpcm_propose_response_p->proposer_ip), 
+    0, 
+    &(dpcm_propose_response_p->proposer_ip)
+  );
+
   DevAssert (NW_OK == rc);
 
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);

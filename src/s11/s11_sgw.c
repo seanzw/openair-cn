@@ -153,6 +153,7 @@ static NwRcT s11_sgw_start_timer_wrapper (
     ret = timer_setup (timeoutSec, timeoutUsec, TASK_S11, INSTANCE_DEFAULT, TIMER_ONE_SHOT, timeoutArg, &timer_id);
   }
 
+  *hTmr = (NwGtpv2cTimerHandleT) timer_id;
   return ret == 0 ? NW_OK : NW_FAILURE;
 }
 

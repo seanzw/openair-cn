@@ -412,6 +412,7 @@ extern                                  "C" {
   static
   NwGtpv2cMsgIeInfoT                      dpcmProposeReqIeInfoTbl[] = {
     {NW_GTPV2C_IE_DPCM_STATES, 0, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY, NULL},
+    {NW_GTPV2C_IE_DPCM_PROPOSER_IP, 4, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY, NULL},
     /*
      * Do not add below this
      */
@@ -421,6 +422,7 @@ extern                                  "C" {
   static
   NwGtpv2cMsgIeInfoT                      dpcmProposeRspIeInfoTbl[] = {
     {NW_GTPV2C_IE_DPCM_STATES, 0, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY, NULL},
+    {NW_GTPV2C_IE_DPCM_PROPOSER_IP, 4, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_MANDATORY, NULL},
     /*
      * Do not add below this
      */
@@ -635,6 +637,7 @@ extern                                  "C" {
           rc = nwGtpv2cMsgIeParseInfoUpdate (thiz, dpcmProposeRspIeInfoTbl);
           NW_ASSERT (NW_OK == rc);
         }
+        break;
       default:{
           free_wrapper ((void**) &thiz);
           thiz = NULL;

@@ -743,6 +743,26 @@ sgw_handle_gtpv1u_listener_recv(
           "P13-Response: New GW Received, forward SPGW-APP msg type %u\n",
           message->gtpv1u_msg_type);
       
+      // Propose the states from the old gateway to MME via S11
+      MessageDef* itti_message;
+      itti_message = itti_alloc_new_message(TASK_SPGW_APP, S11_DPCM_PROPOSE_REQUEST);
+      itti_s11_dpcm_propose_request_t* propose_request = &itti_message->ittiMsg.s11_dpcm_propose_request;
+      
+      // TODO: what teid should be used?
+      propose_request->teid = 0;
+      
+      propose_request->peer_ip = spgw_config.sgw_config.ipv4.mme_S11;
+      // The ip identifies the sender of the states' propose
+      // set to old GW's ip
+      propose_request->proposer_ip = message->ip;
+      propose_request->payload_length = message->payload_length;
+      propose_request->payload_buffer = malloc(propose_request->payload_length);
+      memcpy(propose_request->payload_buffer, message->payload_buffer, message->payload_length);
+      
+      int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
+      OAILOG_INFO(LOG_SPGW_APP, "Send message to task S11 returned %d\n", rv);
+      break;
+
       break;
     }
     case DPCM_MSG_TYPE_P13_RESPONSE: {
@@ -769,8 +789,29 @@ int
 sgw_handle_dpcm_propose_response(
   itti_s11_dpcm_propose_response_t* dpcm_propose_p) {
     
-  OAILOG_INFO(LOG_SPGW_APP, "sgw is handling dpcm proposeresponse");
+  OAILOG_INFO(LOG_SPGW_APP, "sgw is handling dpcm propose response to 0x%x\n", 
+    dpcm_propose_p->proposer_ip);
   // Remember to free the buffer.
+  // Compare proposer ip with self ip.
+  // If not equal, it means this is a response to old gateway,
+  // forward to old gw.
+  if (dpcm_propose_p->proposer_ip != spgw_config.sgw_config.ipv4.S11) {
+    sgw_gtpv1u_dpcm_msg_t dpcm_msg;
+    dpcm_msg.gtpv1u_msg_type = DPCM_MSG_TYPE_P13_RESPONSE;
+    // Set ip to proposer ip so that TASK_DPCM_GW_SOCKET_SEND would send
+    // to proposer.
+    dpcm_msg.ip = dpcm_propose_p->proposer_ip;
+    // Hard code port to GTPV1U port 2152.
+    dpcm_msg.port = 2152;
+    dpcm_msg.payload_buffer = malloc(dpcm_propose_p->payload_length);
+    memcpy(dpcm_msg.payload_buffer, dpcm_propose_p->payload_buffer, 
+      dpcm_propose_p->payload_length);
+    dpcm_msg.payload_length = dpcm_propose_p->payload_length;
+    OAILOG_INFO(LOG_SPGW_APP, "new GW is forwarding response to old gw at 0x%x\n", 
+      dpcm_propose_p->proposer_ip);
+    sgw_send_dpcm_msg_to_task(TASK_DPCM_GW_SOCKET_SEND, &dpcm_msg);
+  }
+
   free(dpcm_propose_p->payload_buffer);
 }
 
