@@ -939,7 +939,7 @@ typedef struct itti_s11_release_access_bearers_response_s {
 typedef struct {
   teid_t      teid;                   ///< Tunnel Endpoint Identifier
   
-  uint32_t    proposer_ip;
+  uint32_t    proposer_ip;            // use network byte order
   char*       payload_buffer;
   size_t      payload_length;
 
@@ -951,7 +951,7 @@ typedef struct {
 typedef struct {
   teid_t      teid;                   ///< Tunnel Endpoint Identifier
   
-  uint32_t    proposer_ip;
+  uint32_t    proposer_ip;            // use network byte order
   char*       payload_buffer;
   size_t      payload_length;
 

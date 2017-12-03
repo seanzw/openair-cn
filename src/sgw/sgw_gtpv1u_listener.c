@@ -33,18 +33,10 @@ static int parse_sgw_gtpv1u_recv_packet(const char* buffer, int n,
   // Read GTP-U message type.
   message->gtpv1u_msg_type = buffer[1];
 
-  // DEST_IP:2152
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "*(BUFFER + 24) = %x\n",
-              *(buffer + 24));
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "*(uint32_t*)(buffer + 24) = %x\n",
-              *(uint32_t*)(buffer + 24));
-  // message->old_sgw_gtpv1u_ip = *(uint32_t*)(buffer + 24);
-
   message->ip = (((uint32_t)(buffer[24])) << 24) +
                 (((uint32_t)(buffer[25])) << 16) +
                 (((uint32_t)(buffer[26])) << 8) + (((uint32_t)(buffer[27])));
 
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "ip = %x\n", message->ip);
   message->port = 2152;
 
   size_t dpcmStatesOffset = 28;
@@ -55,7 +47,7 @@ static int parse_sgw_gtpv1u_recv_packet(const char* buffer, int n,
   message->payload_length = dpcmStatesSize;
 
   OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-              "Parsed DPCM States. Msg type %d. Old gateway ip %x\n",
+              "[DPCM] Parsed DPCM States. GTPv1uMsg type: %d, Msg ip: %x\n",
               message->gtpv1u_msg_type, message->ip);
 
   return 0;
@@ -66,17 +58,14 @@ static int sgw_gtpv1u_send_dpcm_msg(int udpfd,
   struct sockaddr_in dst_addr;
   memset(&dst_addr, 0, sizeof(dst_addr));
   dst_addr.sin_family = AF_INET;
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "forward to ip = %x\n", message->ip);
   dst_addr.sin_addr.s_addr = htonl(message->ip);
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "after to ns = %x\n",
-              dst_addr.sin_addr.s_addr);
   dst_addr.sin_port = htons(message->port);
 
   const size_t dst_addr_str_buffer_length = 32;
   char dst_addr_str_buffer[dst_addr_str_buffer_length];
   inet_ntop(AF_INET, &(dst_addr.sin_addr), dst_addr_str_buffer,
             dst_addr_str_buffer_length);
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Forward to old SGW at %s:%d\n",
+  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] Sending msg to %s:%d\n",
               dst_addr_str_buffer, ntohs(dst_addr.sin_port));
 
   // append GTPU header and IP header to payload
@@ -141,13 +130,23 @@ void sgw_send_dpcm_msg_to_task(task_id_t task,
   deep_cpy(&message->ittiMsg.sgw_gtpv1u_dpcm_msg, dpcm_msg);
 
   int rv = itti_send_msg_to_task(task, INSTANCE_DEFAULT, message);
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Send message to task returned %d\n",
+  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] Send SGW_GTPV1U_DPCM_MSG to task returned %d\n",
               rv);
 }
 
+/**
+ * Listen to the GTPv1U UDP port(Usually the port number is 2152), 
+ * and handle the following DPCM actions:
+ *   new eNb  -> new SPGW: P12-2(states forwarding)
+ *   new SPGW -> old SPGW: P12-3(states forwarding)
+ *   old SPGW -> new SPGW: P13(states propose) 
+ *     (the new SPGW relay the propose from old SPGW to MME)
+ *   new SPGW -> old SPGW: P13-Response(states propose response)
+ *     (the new SPGW forward the propose response from MME to old SPGW)
+ */
 static void* sgw_gtpv1u_listener(void* unused) {
   int fdv1u = _fdv1u;
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Listen to fd %d\n", fdv1u);
+  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] Listen to fd %d\n", fdv1u);
 
   const size_t BUFFER_SIZE = 4096;
   char buffer[BUFFER_SIZE];
@@ -155,16 +154,15 @@ static void* sgw_gtpv1u_listener(void* unused) {
   struct sockaddr_in client_addr;
   int client_len;
   while (1) {
-    OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Waiting for input\n");
     memset(buffer, 0, BUFFER_SIZE);
     int n = recvfrom(fdv1u, buffer, BUFFER_SIZE, 0,
                      (struct sockaddr*)&client_addr, &client_len);
     if (n < 0) {
-      OAILOG_CRITICAL(LOG_SPGW_GTPV1U_LISTENER, "Error in recvfrom\n");
+      OAILOG_CRITICAL(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] Error in recvfrom\n");
       continue;
     }
 
-    OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Received %d bytes: %s\n", n, buffer);
+    OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] Received %d bytes: %s\n", n, buffer);
     sgw_gtpv1u_print_payload(buffer, n);
 
     // Parse message.
@@ -177,50 +175,61 @@ static void* sgw_gtpv1u_listener(void* unused) {
 
     switch (dpcm_msg.gtpv1u_msg_type) {
       case DPCM_MSG_TYPE_P12_2: {
-        // P12-2.
-        // Forward to GW-APP task.
+        // New eNb -> new SPGW: P12'-2(states forwarding)
+
+        // Forward to SPGW_APP to handle the message
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                    "P12-2: New GW Received, forward SPGW-APP msg type %u\n",
-                    dpcm_msg.gtpv1u_msg_type);
+                    "[DPCM] P12-2: new eNb -> new SPGW received, forward to SPGW-APP\n");
         sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
 
-        // Forward to old gw.
+        // Forward the states to old gw
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                    "P12-2: New GW Received, forward to 0x%x\n", dpcm_msg.ip);
+                    "[DPCM] P12-2: forward to old SPGW at 0x%x\n", dpcm_msg.ip);
         dpcm_msg.gtpv1u_msg_type = DPCM_MSG_TYPE_P12_3;
+
+        // dpcm_msg.ip is the destination of the IP packets
         sgw_send_dpcm_msg_to_task(TASK_DPCM_GW_SOCKET_SEND, &dpcm_msg);
         break;
       }
       case DPCM_MSG_TYPE_P12_3: {
-        // P12-3. I am old GW.
-        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                    "P12-3: Old GW received ip 0x%x.\n", dpcm_msg.ip);
+        // new SPGW -> old SPGW: P12-3(states forwarding)
 
-        // Change ip to new gateway (sender)'s ip.
+        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
+                    "[DPCM] P12-3: Old GW received. ip 0x%x.\n", dpcm_msg.ip);
+        
+        /**
+         * With message type DPCM_MSG_TYPE_P12_3,
+         * dpcm_msg.ip is set to be the new gateway (sender)'s ip.
+         * dpcm_msg.port is set to be the new gateway (sender)'s port.
+         * They will tell the old GW where to propose its states.
+        */
         dpcm_msg.ip = ntohl(client_addr.sin_addr.s_addr);
         dpcm_msg.port = ntohs(client_addr.sin_port);
-        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "New GW is at %x:%u\n", dpcm_msg.ip,
+        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "[DPCM] New GW is at %x:%u\n", dpcm_msg.ip,
                     dpcm_msg.port);
 
         // Forward to GW-APP task.
-        OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                    "P12-3: Old GW Received, forward SPGW-APP msg type %u\n",
-                    dpcm_msg.gtpv1u_msg_type);
         sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
         break;
       }
       case DPCM_MSG_TYPE_P13_PROPOSE: {
-        // New GW received old GW's propose (P13).
+        // old SPGW -> new SPGW: P13(states propose)
+        // New GW received old GW's propose
         // Forward to GW-APP task.
-        // IP is proposer (old GW) ip.
+
+        /**
+         * With DPCM_MSG_TYPE_P13_PROPOSE,
+         * dpcm_msg.ip is set to be the proposer's ip.
+         * It will tell the MME who is proposing the states.
+         * In this case it is the old gateway (sender)'s ip.
+        */
         dpcm_msg.ip = ntohl(client_addr.sin_addr.s_addr);
         dpcm_msg.port = ntohs(client_addr.sin_port);
-        sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
-
         OAILOG_INFO(
             LOG_SPGW_GTPV1U_LISTENER,
-            "P13-Propose: New GW Received, forward SPGW-APP msg type %u from old GW 0x%x\n",
+            "[DPCM] P13-Propose: New GW Received, forward SPGW-APP msg type %u from old GW 0x%x\n",
             dpcm_msg.gtpv1u_msg_type, dpcm_msg.ip);
+        sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
         break;
       }
       case DPCM_MSG_TYPE_P13_RESPONSE: {
@@ -229,7 +238,7 @@ static void* sgw_gtpv1u_listener(void* unused) {
         // Forward to GW-APP task.
         OAILOG_INFO(
             LOG_SPGW_GTPV1U_LISTENER,
-            "P13-Response: Old GW Received, forward SPGW-APP msg type %u\n",
+            "[DPCM] P13-Response: Old GW Received, forward SPGW-APP msg type %u\n",
             dpcm_msg.gtpv1u_msg_type);
         sgw_send_dpcm_msg_to_task(TASK_SPGW_APP, &dpcm_msg);
         break;
@@ -252,7 +261,7 @@ static void* sgw_gtpv1u_dpcm_socket_send_thread(void* args) {
     switch (ITTI_MSG_ID(received_message)) {
       case SGW_GTPV1U_DPCM_MSG: {
         OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                    "Received sending request to 0x%x\n",
+                    "[DPCM] DPCM_SOCKET_SENDER received sending request to 0x%x\n",
                     received_message->ittiMsg.sgw_gtpv1u_dpcm_msg.ip);
         sgw_gtpv1u_dpcm_msg_t* dpcm_msg =
             &received_message->ittiMsg.sgw_gtpv1u_dpcm_msg;
@@ -287,7 +296,7 @@ int sgw_gtpv1u_listener_init(const int fdv1u, const uint32_t s1u_ip) {
   _fdv1u = fdv1u;
   _s1u_ip = ntohl(s1u_ip);
   OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-              "Initializing SGW GTPV1U Listener with fd %d, self ip 0x%x\n",
+              "[DPCM] Initializing SGW GTPV1U Listener with fd %d, self ip 0x%x\n",
               fdv1u, _s1u_ip);
 
   int ret = pthread_create(&_listener_thread, NULL, &sgw_gtpv1u_listener, NULL);
@@ -301,9 +310,9 @@ int sgw_gtpv1u_listener_init(const int fdv1u, const uint32_t s1u_ip) {
   OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Initialize socket sender task\n");
   sgw_gtpv1u_dpcm_socket_send_init(fdv1u);
   OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-              "Initialize socket sender task: DONE\n");
+              "[DPCM] Initialize socket sender task: DONE\n");
 
   OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-              "Initializing SGW GTPV1U Listener: DONE\n");
+              "[DPCM] Initializing SGW GTPV1U Listener: DONE\n");
   return RETURNok;
 }

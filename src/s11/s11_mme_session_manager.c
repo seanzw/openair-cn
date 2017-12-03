@@ -440,7 +440,6 @@ static void print_payload(int log_component, char *buffer, size_t n) {
 */
 int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
                                       NwGtpv2cUlpApiT *propose_p) {
-  OAILOG_INFO(LOG_S11, "Enter s11_mme_recv_dpcm_propose_request\n");
 
   NwRcT rc;
   DevAssert(stack_p);
@@ -452,7 +451,7 @@ int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
   request_p->teid = nwGtpv2cMsgGetTeid(propose_p->hMsg);
   request_p->trxn = (void *)propose_p->apiInfo.initialReqIndInfo.hTrxn;
   request_p->peer_ip = propose_p->apiInfo.initialReqIndInfo.peerIp;
-  OAILOG_INFO(LOG_S11, "s11_mme_recv_dpcm_propose_request get peer id 0x%x\n",
+  OAILOG_INFO(LOG_S11, "[DPCM] s11_mme_recv_dpcm_propose_request get peer ip 0x%x\n",
               request_p->peer_ip);
 
   /*
@@ -494,7 +493,10 @@ int s11_mme_recv_dpcm_propose_request(NwGtpv2cStackHandleT *stack_p,
     return RETURNerror;
   }
 
-  OAILOG_INFO(LOG_S11, "About to print the payload @S11_MME!\n");
+  OAILOG_INFO(LOG_S11, "[DPCM] s11_mme_recv_dpcm_propose_request get proposer ip 0x%x\n",
+              request_p->peer_ip);
+              
+  OAILOG_INFO(LOG_S11, "[DPCM] About to print the payload @S11_MME!\n");
   print_payload(LOG_S11, request_p->payload_buffer, request_p->payload_length);
 
   // free(request_p->payload_buffer);
@@ -555,6 +557,7 @@ int s11_mme_dpcm_propose_response(NwGtpv2cStackHandleT* stack_p,
   DevAssert (NW_OK == rc);
 
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
+  OAILOG_DEBUG (LOG_S11, "[DPCM] S11_MME sent GTPC message with type NW_GTP_DPCM_PROPOSE_RSP\n");
   DevAssert (NW_OK == rc);
   return RETURNok;
 }
