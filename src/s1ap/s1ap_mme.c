@@ -114,6 +114,14 @@ s1ap_mme_thread (
          */
         s1ap_message                            message = {0};
 
+        /**
+         * zwu: intercept P13-1 enb propose.
+         */
+        bstring payload = SCTP_DATA_IND (received_message_p).payload;
+        char* payload_cstr = bstr2cstr(payload, '&');
+        OAILOG_INFO(LOG_S1AP, "Get SCTP payload %s\n", payload_cstr);
+        bcstrfree(payload_cstr);
+
         /*
          * Invoke S1AP message decoder
          */
