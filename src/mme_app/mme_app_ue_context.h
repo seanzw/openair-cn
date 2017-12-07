@@ -355,6 +355,8 @@ void mme_app_handle_enb_deregister_ind(const itti_s1ap_eNB_deregistered_ind_t co
 
 void mme_app_send_delete_session_request (struct ue_context_s *ue_context_p);
 
+void mme_app_handle_dpcm_enb_propose(itti_s1ap_dpcm_enb_propose_t* propose_p);
+
 void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* request_p);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */

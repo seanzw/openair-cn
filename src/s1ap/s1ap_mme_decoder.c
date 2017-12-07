@@ -62,6 +62,13 @@ s1ap_mme_decode_initiating (
         *message_id = S1AP_UPLINK_NAS_LOG;
       }
       break;
+    
+    case S1ap_ProcedureCode_id_DPCM_eNB_Propose: {
+      ret = s1ap_decode_s1ap_dpcmenbproposeies (&message->msg.s1ap_DPCMeNBProposeIEs, &initiating_p->value);
+        s1ap_xer_print_s1ap_dpcmenbpropose (s1ap_xer__print2sp, message_string, message);
+        *message_id = S1AP_DPCM_ENB_PROPOSE_LOG; // No log.
+    }
+    break;
 
     case S1ap_ProcedureCode_id_S1Setup: {
         ret = s1ap_decode_s1ap_s1setuprequesties (&message->msg.s1ap_S1SetupRequestIEs, &initiating_p->value);
@@ -268,6 +275,8 @@ s1ap_mme_decode_pdu (
 int s1ap_free_mme_decode_pdu(
     s1ap_message *message, MessagesIds message_id) {
   switch(message_id) {
+  case S1AP_DPCM_ENB_PROPOSE_LOG:
+    return free_s1ap_dpcmenbpropose(&message->msg.s1ap_DPCMeNBProposeIEs);
   case S1AP_UPLINK_NAS_LOG:
     return free_s1ap_uplinknastransport(&message->msg.s1ap_UplinkNASTransportIEs);
   case S1AP_S1_SETUP_LOG:

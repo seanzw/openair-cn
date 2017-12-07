@@ -29,6 +29,7 @@
 //WARNING: Do not include this header directly. Use intertask_interface.h instead.
 
 /* Messages for S1AP logging */
+MESSAGE_DEF(S1AP_DPCM_ENB_PROPOSE_LOG      , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_dpcm_enb_propose_log)
 MESSAGE_DEF(S1AP_UPLINK_NAS_LOG            , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_uplink_nas_log)
 MESSAGE_DEF(S1AP_UE_CAPABILITY_IND_LOG     , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_ue_capability_ind_log)
 MESSAGE_DEF(S1AP_INITIAL_CONTEXT_SETUP_LOG , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_initial_context_setup_log)
@@ -47,3 +48,5 @@ MESSAGE_DEF(S1AP_UE_CONTEXT_RELEASE_REQ    ,  MESSAGE_PRIORITY_MED, itti_s1ap_ue
 MESSAGE_DEF(S1AP_UE_CONTEXT_RELEASE_COMMAND,  MESSAGE_PRIORITY_MED, itti_s1ap_ue_context_release_command_t,  s1ap_ue_context_release_command)
 MESSAGE_DEF(S1AP_UE_CONTEXT_RELEASE_COMPLETE, MESSAGE_PRIORITY_MED, itti_s1ap_ue_context_release_complete_t, s1ap_ue_context_release_complete)
 MESSAGE_DEF(S1AP_NAS_DL_DATA_REQ           ,  MESSAGE_PRIORITY_MED, itti_s1ap_nas_dl_data_req_t           ,  s1ap_nas_dl_data_req)
+
+MESSAGE_DEF(S1AP_DPCM_ENB_PROPOSE          ,  MESSAGE_PRIORITY_MED, itti_s1ap_dpcm_enb_propose_t           ,  s1ap_dpcm_enb_propose)

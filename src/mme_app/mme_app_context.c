@@ -949,7 +949,7 @@ mme_app_handle_enb_deregister_ind(const itti_s1ap_eNB_deregistered_ind_t const *
 }
 
 /**
- * MME_APP receives the DPCM propose request.
+ * MME_APP receives the DPCM propose request from new/old GW.
  * Handle the proposed states and send propose response back to the proposer
  */
 void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* request_p) {
@@ -970,6 +970,14 @@ void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* reques
 
   int rv = itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, itti_message);
   OAILOG_INFO(LOG_MME_APP, "[DPCM] MME_APP Send message S11_DPCM_PROPOSE_RESPONSE to task S11 returned %d\n", rv);
+}
+
+/**
+ * MME_APP receives the DPCM propose request from eNB.
+ * Handle the proposed states and send propose response back to the proposer.
+ */
+void mme_app_handle_dpcm_enb_propose(itti_s1ap_dpcm_enb_propose_t* propose_p) {
+  OAILOG_INFO(LOG_MME_APP, "[DPCM] Received itti_s1ap_dpcm_enb_propose_t with dummy = %d\n", propose_p->dummy);
 }
 
 /*

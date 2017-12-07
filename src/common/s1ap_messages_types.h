@@ -119,4 +119,8 @@ typedef struct itti_s1ap_ue_context_release_complete_s {
   enb_ue_s1ap_id_t  enb_ue_s1ap_id:24;
 } itti_s1ap_ue_context_release_complete_t;
 
+typedef struct itti_s1ap_dpcm_enb_propose_s {
+  int dummy;
+} itti_s1ap_dpcm_enb_propose_t;
+
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

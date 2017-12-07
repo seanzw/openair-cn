@@ -198,10 +198,15 @@ void *mme_app_thread (
         mme_app_handle_enb_deregister_ind(&received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
         break;
     }
-    
+
     case S11_DPCM_PROPOSE_REQUEST: {
-      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_PROPOSE_REQUEST\n");
+      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_ENB_PROPOSE_REQUEST\n");
       mme_app_handle_dpcm_propose_request(&received_message_p->ittiMsg.s11_dpcm_propose_request);
+      break;
+    }
+    case S1AP_DPCM_ENB_PROPOSE: {
+      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_PROPOSE_REQUEST %d\n", received_message_p->ittiMsg.s1ap_dpcm_enb_propose.dummy);
+      mme_app_handle_dpcm_enb_propose(&received_message_p->ittiMsg.s1ap_dpcm_enb_propose);
       break;
     }
 

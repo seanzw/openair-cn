@@ -111,6 +111,9 @@ s1ap_message_decoded_callback           messages_callback[][3] = {
   {0, 0, 0},                    /* UplinkUEAssociatedLPPaTransport */
   {0, 0, 0},                    /* DownlinkNonUEAssociatedLPPaTransport */
   {0, 0, 0},                    /* UplinkNonUEAssociatedLPPaTransport */
+  {0, 0, 0},                    /* Place holder: unused. 48 */
+  {0, 0, 0},                    /* Place holder: unused. 49 */
+  {s1ap_mme_handle_dpcm_enb_propose, 0, 0},                    /* DPCM-eNB-Propose: unused. 50 */
 };
 
 const char                             *s1ap_direction2String[] = {
@@ -131,7 +134,7 @@ s1ap_mme_handle_message (
    * Checking procedure Code and direction of message
    */
   if ((message->procedureCode > (sizeof (messages_callback) / (3 * sizeof (s1ap_message_decoded_callback)))) || (message->direction > S1AP_PDU_PR_unsuccessfulOutcome)) {
-    OAILOG_DEBUG (LOG_S1AP, "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n", assoc_id, (int)message->procedureCode, (int)message->direction);
+    OAILOG_ERROR (LOG_S1AP, "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n", assoc_id, (int)message->procedureCode, (int)message->direction);
     return -1;
   }
 
@@ -140,7 +143,7 @@ s1ap_mme_handle_message (
    * * * * This can mean not implemented or no procedure for eNB (wrong message).
    */
   if (messages_callback[message->procedureCode][message->direction - 1] == NULL) {
-    OAILOG_DEBUG (LOG_S1AP, "[SCTP %d] No handler for procedureCode %d in %s\n", assoc_id, (int)message->procedureCode, s1ap_direction2String[(int)message->direction]);
+    OAILOG_ERROR (LOG_S1AP, "[SCTP %d] No handler for procedureCode %d in %s\n", assoc_id, (int)message->procedureCode, s1ap_direction2String[(int)message->direction]);
     return -2;
   }
 
@@ -625,6 +628,20 @@ s1ap_mme_handle_initial_context_setup_response (
                       MME_APP_INITIAL_CONTEXT_SETUP_RSP (message_p).bearer_s1u_enb_fteid.teid);
   rc =  itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN (LOG_S1AP, rc);
+}
+
+// Send to MME_APP
+int s1ap_mme_handle_dpcm_enb_propose(const sctp_assoc_id_t assoc_id,
+                                    const sctp_stream_id_t stream, struct s1ap_message_s *message_p) {
+                                
+  S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message_p->msg.s1ap_DPCMeNBProposeIEs;
+  MessageDef* itti_message = itti_alloc_new_message(TASK_S1AP, S1AP_DPCM_ENB_PROPOSE);
+  itti_s1ap_dpcm_enb_propose_t* propose_p = &itti_message->ittiMsg.s1ap_dpcm_enb_propose;
+
+  propose_p->dummy = propose_ies_p->dpcM_eNB_Propose_IE.dummy;
+
+  OAILOG_INFO(LOG_S1AP, "[P13-1-PROPOSE] Received %d\n", propose_p->dummy);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, itti_message); 
 }
 
 
