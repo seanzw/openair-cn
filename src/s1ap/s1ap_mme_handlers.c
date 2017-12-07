@@ -113,7 +113,7 @@ s1ap_message_decoded_callback           messages_callback[][3] = {
   {0, 0, 0},                    /* UplinkNonUEAssociatedLPPaTransport */
   {0, 0, 0},                    /* Place holder: unused. 48 */
   {0, 0, 0},                    /* Place holder: unused. 49 */
-  {s1ap_mme_handle_dpcm_enb_propose, 0, 0},                    /* DPCM-eNB-Propose: unused. 50 */
+  {s1ap_mme_handle_dpcm_enb_propose, 0, 0},                    /* DPCM-eNB-Propose: 50 */
 };
 
 const char                             *s1ap_direction2String[] = {
@@ -639,9 +639,44 @@ int s1ap_mme_handle_dpcm_enb_propose(const sctp_assoc_id_t assoc_id,
   itti_s1ap_dpcm_enb_propose_t* propose_p = &itti_message->ittiMsg.s1ap_dpcm_enb_propose;
 
   propose_p->dummy = propose_ies_p->dpcM_eNB_Propose_IE.dummy;
+  propose_p->assoc_id = assoc_id;
+  propose_p->stream = stream;
 
   OAILOG_INFO(LOG_S1AP, "[P13-1-PROPOSE] Received %d\n", propose_p->dummy);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, itti_message); 
+}
+
+// Send response back to SCTP.
+int s1ap_mme_handle_dpcm_enb_response(const itti_s1ap_dpcm_enb_response_t * const response_p) {
+
+  int                                    rc = RETURNok;
+  OAILOG_FUNC_IN (LOG_S1AP);
+
+  uint8_t                                *buffer = NULL;
+  uint32_t                                length = 0;
+  s1ap_message                            message = {0};
+
+  message.procedureCode = S1ap_ProcedureCode_id_DPCM_eNB_Propose;
+  // Set accept or not.
+  if (response_p->response == 0) {
+    message.direction = S1AP_PDU_PR_unsuccessfulOutcome;
+  } else {
+    message.direction = S1AP_PDU_PR_successfulOutcome;
+  }
+  S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message.msg.s1ap_DPCMeNBProposeIEs;
+  // Fill in states.
+  propose_ies_p->dpcM_eNB_Propose_IE.dummy = response_p->dummy;
+
+  if (s1ap_mme_encode_pdu (&message, &buffer, &length) < 0) {
+    MSC_LOG_EVENT (MSC_S1AP_MME, "0 DPCM_eNB_Propose/response encoding failed");
+    OAILOG_FUNC_RETURN (LOG_S1AP, RETURNerror);
+  }
+
+  bstring b = blk2bstr(buffer, length);
+  // Randomly set ue_id.
+  rc = s1ap_mme_itti_send_sctp_request (&b, response_p->assoc_id, response_p->stream, 0);
+
+  OAILOG_FUNC_RETURN (LOG_S1AP, rc);
 }
 
 

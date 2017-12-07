@@ -67,6 +67,10 @@ static inline int                       s1ap_mme_encode_unsuccessfull_outcome (
   s1ap_message * message_p,
   uint8_t ** buffer,
   uint32_t * len);
+static inline int                       s1ap_eNB_encode_dpcm_enb_propose (
+  s1ap_message * message_p,
+  uint8_t **buffer,
+  uint32_t *length);
 
 static inline int
 s1ap_mme_encode_initial_context_setup_request (
@@ -147,7 +151,8 @@ s1ap_mme_encode_successfull_outcome (
   switch (message_p->procedureCode) {
   case S1ap_ProcedureCode_id_S1Setup:
     return s1ap_mme_encode_s1setupresponse (message_p, buffer, length);
-
+  case S1ap_ProcedureCode_id_DPCM_eNB_Propose:
+    return s1ap_eNB_encode_dpcm_enb_propose (message_p, buffer, length);
   default:
     OAILOG_DEBUG (LOG_S1AP, "Unknown procedure ID (%d) for successfull outcome message\n", (int)message_p->procedureCode);
     break;
@@ -165,13 +170,46 @@ s1ap_mme_encode_unsuccessfull_outcome (
   switch (message_p->procedureCode) {
   case S1ap_ProcedureCode_id_S1Setup:
     return s1ap_mme_encode_s1setupfailure (message_p, buffer, length);
-
+  case S1ap_ProcedureCode_id_DPCM_eNB_Propose:
+    return s1ap_eNB_encode_dpcm_enb_propose (message_p, buffer, length);
   default:
     OAILOG_DEBUG (LOG_S1AP, "Unknown procedure ID (%d) for unsuccessfull outcome message\n", (int)message_p->procedureCode);
     break;
   }
 
   return -1;
+}
+
+static inline
+int s1ap_eNB_encode_dpcm_enb_propose(
+  s1ap_message * message_p,
+  uint8_t **buffer,
+  uint32_t *length)
+{
+  S1ap_DPCMeNBPropose_t  propose;
+  S1ap_DPCMeNBPropose_t *propose_p = &propose;
+
+  memset((void *)propose_p, 0, sizeof(propose));
+
+  if (s1ap_encode_s1ap_dpcmenbproposeies(propose_p, &message_p->msg.s1ap_DPCMeNBProposeIEs) < 0) {
+    return -1;
+  }
+
+  if (message_p->direction == S1AP_PDU_PR_successfulOutcome) {
+    return s1ap_generate_successfull_outcome(buffer,
+                                            length,
+                                            S1ap_ProcedureCode_id_DPCM_eNB_Propose,
+                                            S1ap_Criticality_ignore,
+                                            &asn_DEF_S1ap_DPCMeNBPropose,
+                                            propose_p);
+  } else {
+    return s1ap_generate_unsuccessfull_outcome(buffer,
+                                            length,
+                                            S1ap_ProcedureCode_id_DPCM_eNB_Propose,
+                                            S1ap_Criticality_ignore,
+                                            &asn_DEF_S1ap_DPCMeNBPropose,
+                                            propose_p);
+  }
 }
 
 static inline int

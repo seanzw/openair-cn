@@ -62,6 +62,8 @@ int s1ap_mme_handle_ue_context_release_request(const sctp_assoc_id_t assoc_id,
 int s1ap_mme_handle_dpcm_enb_propose(const sctp_assoc_id_t assoc_id,
                                     const sctp_stream_id_t stream, struct s1ap_message_s *message_p);
 
+int s1ap_mme_handle_dpcm_enb_response(const itti_s1ap_dpcm_enb_response_t * const response_p);
+
 int s1ap_handle_ue_context_release_command(
 		const itti_s1ap_ue_context_release_command_t * const ue_context_release_command_pP);
 

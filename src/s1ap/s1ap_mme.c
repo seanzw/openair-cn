@@ -177,6 +177,11 @@ s1ap_mme_thread (
       }
       break;
 
+    case S1AP_DPCM_ENB_RESPONSE: {
+      s1ap_mme_handle_dpcm_enb_response(&received_message_p->ittiMsg.s1ap_dpcm_enb_response);
+    }
+    break;
+
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF:{
         s1ap_handle_conn_est_cnf (&MME_APP_CONNECTION_ESTABLISHMENT_CNF (received_message_p));
       }

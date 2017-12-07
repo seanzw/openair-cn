@@ -121,6 +121,15 @@ typedef struct itti_s1ap_ue_context_release_complete_s {
 
 typedef struct itti_s1ap_dpcm_enb_propose_s {
   int dummy;
+  sctp_assoc_id_t assoc_id;
+  sctp_stream_id_t stream;
 } itti_s1ap_dpcm_enb_propose_t;
+
+typedef struct itti_s1ap_dpcm_enb_response_s {
+  int dummy;
+  uint8_t response;
+  sctp_assoc_id_t assoc_id;
+  sctp_stream_id_t stream;
+} itti_s1ap_dpcm_enb_response_t;
 
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */
