@@ -119,14 +119,16 @@ typedef struct itti_s1ap_ue_context_release_complete_s {
   enb_ue_s1ap_id_t  enb_ue_s1ap_id:24;
 } itti_s1ap_ue_context_release_complete_t;
 
+#include "../../../build/mme/build/CMakeFiles/r10.5/DPCMStates.h"
+
 typedef struct itti_s1ap_dpcm_enb_propose_s {
-  int dummy;
+  DPCMStates_t states;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
 } itti_s1ap_dpcm_enb_propose_t;
 
 typedef struct itti_s1ap_dpcm_enb_response_s {
-  int dummy;
+  DPCMStates_t states;
   uint8_t response;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;

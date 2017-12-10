@@ -977,13 +977,13 @@ void mme_app_handle_dpcm_propose_request(itti_s11_dpcm_propose_request_t* reques
  * Handle the proposed states and send propose response back to the proposer.
  */
 void mme_app_handle_dpcm_enb_propose(itti_s1ap_dpcm_enb_propose_t* propose_p) {
-  OAILOG_INFO(LOG_MME_APP, "[DPCM] Received itti_s1ap_dpcm_enb_propose_t with dummy = %d\n", propose_p->dummy);
+  OAILOG_INFO(LOG_MME_APP, "[DPCM] Received itti_s1ap_dpcm_enb_propose_t with dpcm state id = %ul\n", propose_p->states.dpcmId);
 
   // Process the states, reply the propose with accept or reject with updated states
   MessageDef* itti_message = itti_alloc_new_message(TASK_MME_APP, S1AP_DPCM_ENB_RESPONSE);
   itti_s1ap_dpcm_enb_response_t* propose_response_p = &itti_message->ittiMsg.s1ap_dpcm_enb_response;
   
-  propose_response_p->dummy = propose_p->dummy;
+  propose_response_p->states = propose_p->states;
   propose_response_p->response = 1;
   propose_response_p->assoc_id = propose_p->assoc_id;
   propose_response_p->stream = propose_p->stream;

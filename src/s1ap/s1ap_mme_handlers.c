@@ -638,11 +638,11 @@ int s1ap_mme_handle_dpcm_enb_propose(const sctp_assoc_id_t assoc_id,
   MessageDef* itti_message = itti_alloc_new_message(TASK_S1AP, S1AP_DPCM_ENB_PROPOSE);
   itti_s1ap_dpcm_enb_propose_t* propose_p = &itti_message->ittiMsg.s1ap_dpcm_enb_propose;
 
-  propose_p->dummy = propose_ies_p->dpcM_eNB_Propose_IE.dummy;
+  propose_p->states = propose_ies_p->dpcM_eNB_Propose_IE.dpcm_states;
   propose_p->assoc_id = assoc_id;
   propose_p->stream = stream;
 
-  OAILOG_INFO(LOG_S1AP, "[P13-1-PROPOSE] Received %d\n", propose_p->dummy);
+  OAILOG_INFO(LOG_S1AP, "[P13-1-PROPOSE] Received %d\n", propose_p->states);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, itti_message); 
 }
 
@@ -665,7 +665,7 @@ int s1ap_mme_handle_dpcm_enb_response(const itti_s1ap_dpcm_enb_response_t * cons
   }
   S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message.msg.s1ap_DPCMeNBProposeIEs;
   // Fill in states.
-  propose_ies_p->dpcM_eNB_Propose_IE.dummy = response_p->dummy;
+  propose_ies_p->dpcM_eNB_Propose_IE.dpcm_states = response_p->states;
 
   if (s1ap_mme_encode_pdu (&message, &buffer, &length) < 0) {
     MSC_LOG_EVENT (MSC_S1AP_MME, "0 DPCM_eNB_Propose/response encoding failed");

@@ -205,7 +205,7 @@ void *mme_app_thread (
       break;
     }
     case S1AP_DPCM_ENB_PROPOSE: {
-      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_PROPOSE_REQUEST %d\n", received_message_p->ittiMsg.s1ap_dpcm_enb_propose.dummy);
+      OAILOG_INFO (LOG_MME_APP, "[DPCM] received S11_DPCM_PROPOSE_REQUEST with dpcm id = %ul\n", received_message_p->ittiMsg.s1ap_dpcm_enb_propose.states.dpcmId);
       mme_app_handle_dpcm_enb_propose(&received_message_p->ittiMsg.s1ap_dpcm_enb_propose);
       break;
     }
