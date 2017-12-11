@@ -431,6 +431,8 @@ s11_sgw_handle_delete_session_response (
   return RETURNok;
 }
 
+static NwGtpv2cTunnelHandleT dpcm_s11_tunnel = NULL;
+
 int 
 s11_sgw_handle_dpcm_propose_request(
   NwGtpv2cStackHandleT * stack_p,
@@ -449,8 +451,12 @@ s11_sgw_handle_dpcm_propose_request(
   //ulp_req.apiInfo.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
   ulp_req.apiInfo.initialReqInfo.teidLocal  = 0;
   ulp_req.apiInfo.initialReqInfo.hUlpTunnel = 0;
-  ulp_req.apiInfo.initialReqInfo.hTunnel    = 0;
- 
+  if(dpcm_s11_tunnel == NULL) {
+    ulp_req.apiInfo.initialReqInfo.hTunnel = (NwGtpv2cTunnelHandleT) 0;
+  } else {
+    ulp_req.apiInfo.initialReqInfo.hTunnel = dpcm_s11_tunnel;
+  }
+
   rc = nwGtpv2cMsgAddIe(
     (ulp_req.hMsg), 
     NW_GTPV2C_IE_DPCM_STATES, 
@@ -474,6 +480,9 @@ s11_sgw_handle_dpcm_propose_request(
 
   rc = nwGtpv2cProcessUlpReq (*stack_p, &ulp_req);
   DevAssert (NW_OK == rc);
+
+  dpcm_s11_tunnel = ulp_req.apiInfo.initialReqInfo.hTunnel;
+
   OAILOG_WARNING (LOG_S11, "[DPCM] s11_sgw_handle_dpcm_propose_request sent!\n");
   return RETURNok;
 }
