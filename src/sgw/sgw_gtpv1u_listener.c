@@ -33,9 +33,11 @@ static int parse_sgw_gtpv1u_recv_packet(const char* buffer, int n,
   // Read GTP-U message type.
   message->gtpv1u_msg_type = buffer[1];
 
-  message->ip = (((uint32_t)(buffer[24])) << 24) +
-                (((uint32_t)(buffer[25])) << 16) +
-                (((uint32_t)(buffer[26])) << 8) + (((uint32_t)(buffer[27])));
+  
+
+  message->ip = (((uint8_t)(buffer[24])) << 24) +
+                (((uint8_t)(buffer[25])) << 16) +
+                (((uint8_t)(buffer[26])) << 8) + (((uint8_t)(buffer[27])));
 
   message->port = 2152;
 
@@ -152,7 +154,7 @@ static void* sgw_gtpv1u_listener(void* unused) {
   char buffer[BUFFER_SIZE];
 
   struct sockaddr_in client_addr;
-  int client_len;
+  int client_len = sizeof(client_addr);
   while (1) {
     memset(buffer, 0, BUFFER_SIZE);
     int n = recvfrom(fdv1u, buffer, BUFFER_SIZE, 0,
