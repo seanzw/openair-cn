@@ -26,6 +26,23 @@ static uint32_t _s1u_ip;
 // Used to forward to old_gateway.
 static int _forward_udp_fd;
 
+
+static void sgw_gtpv1u_print_payload(char* buffer, size_t n) {
+  // Print the payload in hex.
+  const size_t HEX_BUFFER_SIZE = 4096;
+  char hex_buffer[HEX_BUFFER_SIZE];
+  for (size_t i = 0, pos = 0; i < n; ++i) {
+    if (pos >= HEX_BUFFER_SIZE) {
+      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
+                  "Out of boundary! Boom! Not send to old "
+                  "gateway.\n");
+      return;
+    }
+    pos += sprintf(hex_buffer + pos, "%d:0x%02x\n", i, (unsigned)buffer[i]);
+  }
+  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Payload: %s\n", hex_buffer);
+}
+
 // Parse the received DPCM states into the message.
 // Return 0 if succeed.
 static int parse_sgw_gtpv1u_recv_packet(const char* buffer, int n,
@@ -77,6 +94,7 @@ static int sgw_gtpv1u_send_dpcm_msg(int udpfd,
   char* payload_with_header = malloc(payload_with_header_length);
   memcpy(payload_with_header + GTPU_HEADER_LENGTH + sizeof(struct iphdr),
          message->payload_buffer, message->payload_length);
+  sgw_gtpv1u_print_payload(payload_with_header, payload_with_header_length);
 
   // Set GTPV1U message type.
   payload_with_header[1] = message->gtpv1u_msg_type;
@@ -100,22 +118,6 @@ static int sgw_gtpv1u_send_dpcm_msg(int udpfd,
   }
 
   return RETURNok;
-}
-
-static void sgw_gtpv1u_print_payload(char* buffer, size_t n) {
-  // Print the payload in hex.
-  const size_t HEX_BUFFER_SIZE = 4096;
-  char hex_buffer[HEX_BUFFER_SIZE];
-  for (size_t i = 0, pos = 0; i < n; ++i) {
-    if (pos >= HEX_BUFFER_SIZE) {
-      OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER,
-                  "Out of boundary! Boom! Not send to old "
-                  "gateway.\n");
-      return;
-    }
-    pos += sprintf(hex_buffer + pos, "%d:0x%02x\n", i, (unsigned)buffer[i]);
-  }
-  OAILOG_INFO(LOG_SPGW_GTPV1U_LISTENER, "Payload: %s\n", hex_buffer);
 }
 
 static void deep_cpy(sgw_gtpv1u_dpcm_msg_t* dst, sgw_gtpv1u_dpcm_msg_t* src) {
